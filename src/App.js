@@ -46,6 +46,8 @@ import {
   AlertTriangle,
   QrCode,
   Clock,
+  Phone,
+  MapPin,
 } from "lucide-react";
 
 // --- Firebase Initialization (CodeSandbox 設定區) ---
@@ -90,6 +92,60 @@ const maskTicketId = (ticketId) => {
   return ticketId.replace(/^(\d{4})\d{6}(.*)$/, "$1******$2");
 };
 
+// --- Snow Effect Component (New) ---
+const SnowEffect = () => {
+  // 生成 50 個隨機雪花
+  const snowflakes = Array.from({ length: 50 }).map((_, i) => ({
+    id: i,
+    left: Math.random() * 100 + "%",
+    animationDuration: Math.random() * 5 + 5 + "s", // 5-10秒飄落時間
+    opacity: Math.random() * 0.5 + 0.3, // 透明度
+    delay: Math.random() * 5 + "s", // 隨機延遲
+    size: Math.random() * 10 + 10 + "px", // 大小
+  }));
+
+  return (
+    <div
+      className="fixed inset-0 pointer-events-none z-0 overflow-hidden"
+      aria-hidden="true"
+    >
+      <style>
+        {`
+          @keyframes snowfall {
+            0% { transform: translateY(-10vh) translateX(0) rotate(0deg); }
+            50% { transform: translateY(50vh) translateX(20px) rotate(180deg); }
+            100% { transform: translateY(110vh) translateX(-20px) rotate(360deg); }
+          }
+          .snowflake {
+            position: absolute;
+            top: -20px;
+            color: white;
+            animation-name: snowfall;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+            text-shadow: 0 0 5px rgba(255,255,255,0.8);
+          }
+        `}
+      </style>
+      {snowflakes.map((flake) => (
+        <div
+          key={flake.id}
+          className="snowflake"
+          style={{
+            left: flake.left,
+            animationDuration: flake.animationDuration,
+            animationDelay: flake.delay,
+            opacity: flake.opacity,
+            fontSize: flake.size,
+          }}
+        >
+          ❄
+        </div>
+      ))}
+    </div>
+  );
+};
+
 // --- Main Application Component ---
 export default function ChristmasEventApp() {
   const [user, setUser] = useState(null);
@@ -98,6 +154,10 @@ export default function ChristmasEventApp() {
   const [prevView, setPrevView] = useState("landing");
   const [loading, setLoading] = useState(true);
   const [configError, setConfigError] = useState(false);
+
+  // Global Theme: Dark Wood Night Theme for ALL pages
+  const bgClass = "bg-gradient-to-br from-[#4A3426] via-[#2F1E16] to-[#150D0A]";
+  const textClass = "text-[#EFEBE9]";
 
   // Auth Effect
   useEffect(() => {
@@ -214,7 +274,12 @@ export default function ChristmasEventApp() {
     );
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] font-sans text-[#4A3728] text-base md:text-lg selection:bg-[#FCD34D] selection:text-[#4A3728]">
+    <div
+      className={`min-h-screen font-sans ${bgClass} ${textClass} text-base md:text-lg selection:bg-[#FCD34D] selection:text-[#4A3728] transition-colors duration-700 ease-in-out`}
+    >
+      {/* 聖誕下雪效果 (現在是全局顯示) */}
+      <SnowEffect />
+
       {/* Dynamic Header: Wood & Red Theme */}
       <header className="bg-[#8B1E1E] text-[#FFF8E7] p-4 shadow-lg sticky top-0 z-20 border-b-4 border-[#C5A059]">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
@@ -256,7 +321,7 @@ export default function ChristmasEventApp() {
       </header>
 
       {/* Main Content Router */}
-      <main className="max-w-lg md:max-w-5xl mx-auto p-4 md:p-8 pb-24 md:pb-12">
+      <main className="max-w-lg md:max-w-5xl mx-auto p-4 md:p-8 pb-24 md:pb-12 relative z-10">
         {view === "landing" && (
           <LandingPage setView={setView} goToMenu={goToMenu} />
         )}
@@ -284,7 +349,7 @@ function MenuView({ goBack }) {
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <button
         onClick={goBack}
-        className="flex items-center gap-2 text-[#8D6E63] font-bold hover:text-[#5D4037] mb-2 px-2 py-1 rounded hover:bg-[#EFEBE9] transition-colors"
+        className="flex items-center gap-2 text-[#EFEBE9] font-bold hover:text-white mb-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors"
       >
         <ArrowLeft className="w-6 h-6" /> 返回
       </button>
@@ -318,8 +383,8 @@ function MenuView({ goBack }) {
 function LandingPage({ setView, goToMenu }) {
   return (
     <div className="flex flex-col items-center justify-center pt-4 md:pt-10 px-2 space-y-8 animate-in fade-in zoom-in duration-500">
-      {/* Logo Section */}
-      <div className="bg-white p-1 rounded-full shadow-xl border-[6px] border-[#15803D] w-40 h-40 md:w-56 md:h-56 flex items-center justify-center overflow-hidden mb-2 relative ring-4 ring-[#15803D]/20">
+      {/* Logo Section - Modified to use Red-Green Gradient Frame */}
+      <div className="bg-gradient-to-r from-[#B91C1C] to-[#15803D] p-[6px] rounded-full shadow-2xl w-40 h-40 md:w-56 md:h-56 flex items-center justify-center overflow-hidden mb-2 relative z-10">
         <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-white">
           <img
             src={LOGO_URL}
@@ -342,13 +407,17 @@ function LandingPage({ setView, goToMenu }) {
         </div>
       </div>
 
-      <div className="text-center space-y-3 md:space-y-4 max-w-lg">
-        <h2 className="text-3xl md:text-5xl font-extrabold text-[#4A3728] leading-tight">
+      <div className="text-center space-y-3 md:space-y-4 max-w-lg z-10 relative">
+        {/* Title updated for Dark Background */}
+        <h2 className="text-3xl md:text-5xl font-extrabold text-[#FFF8E7] leading-tight drop-shadow-lg">
           歡迎光臨
           <br />
-          <span className="text-[#B91C1C] inline-block mt-2">木木</span>營養食！
+          <span className="text-[#EF4444] inline-block mt-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+            木木
+          </span>
+          營養食！
         </h2>
-        <div className="bg-[#FFF8E1] px-4 py-2 rounded-full inline-block border border-[#FDE68A]">
+        <div className="bg-[#FFF8E1] px-4 py-2 rounded-full inline-block border-2 border-[#FCD34D] shadow-lg transform -rotate-2">
           <p className="text-[#8D6E63] font-medium text-lg md:text-xl">
             消費滿{" "}
             <span className="font-bold text-[#D97706] text-xl md:text-2xl">
@@ -357,12 +426,12 @@ function LandingPage({ setView, goToMenu }) {
             元贈聖誕摸彩券
           </p>
         </div>
-        <p className="text-[#B91C1C] text-sm md:text-base font-bold animate-pulse">
+        <p className="text-[#FCA5A5] text-sm md:text-base font-bold animate-pulse tracking-wide">
           (金額可跨日累積喔！)
         </p>
       </div>
 
-      <div className="w-full max-w-sm md:max-w-md space-y-4">
+      <div className="w-full max-w-sm md:max-w-md space-y-4 z-10 relative">
         {/* Menu Button */}
         <button
           onClick={goToMenu}
@@ -374,38 +443,73 @@ function LandingPage({ setView, goToMenu }) {
         {/* Customer Button */}
         <button
           onClick={() => setView("customer-login")}
-          className="w-full bg-white border-2 border-[#B91C1C] text-[#B91C1C] hover:bg-[#FEF2F2] font-bold py-4 rounded-2xl shadow-sm flex items-center justify-center gap-3 text-lg md:text-xl transition-all active:scale-95 group"
+          className="w-full bg-white border-2 border-[#B91C1C] text-[#B91C1C] hover:bg-[#FEF2F2] font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 text-lg md:text-xl transition-all active:scale-95 group"
         >
           <User className="w-6 h-6 group-hover:scale-110 transition-transform" />{" "}
           我是顧客 (查詢/註冊)
         </button>
 
-        {/* Admin Button */}
+        {/* Admin Button - Slightly transparent for dark bg integration */}
         <button
           onClick={() => setView("admin-login")}
-          className="w-full bg-[#4A3426] text-[#EFEBE9] hover:bg-[#3E2723] font-bold py-4 rounded-2xl shadow-[0_4px_0_rgb(40,20,10)] active:shadow-none active:translate-y-1 flex items-center justify-center gap-3 text-lg md:text-xl transition-all opacity-80 hover:opacity-100"
+          className="w-full bg-[#4A3426]/80 backdrop-blur-sm border border-[#5D4037] text-[#EFEBE9] hover:bg-[#3E2723] font-bold py-4 rounded-2xl shadow-lg active:shadow-none active:translate-y-1 flex items-center justify-center gap-3 text-lg md:text-xl transition-all"
         >
           <Lock className="w-6 h-6 text-[#C5A059]" /> 店長登入 (後台)
         </button>
       </div>
 
-      {/* Info Box */}
-      <div className="w-full max-w-md mt-8 p-5 bg-[#FEF2F2] rounded-2xl text-sm md:text-base text-[#991B1B] text-center border border-[#FECACA] shadow-inner relative overflow-hidden">
-        <div className="relative z-10 leading-relaxed">
-          <h3 className="font-bold text-lg mb-2 flex items-center justify-center gap-2">
-            <Calendar className="w-5 h-5" /> 聖誕活動期間：12/15 ~ 12/25
-          </h3>
-          <div className="mt-2 text-[#7F1D1D] font-medium bg-white/60 p-3 rounded-xl backdrop-blur-sm">
-            <p>只要報手機號碼，消費金額</p>
-            <p className="text-lg font-bold my-1 text-[#B91C1C]">
-              ✨ 可跨日一直累積 ✨
-            </p>
-            <p>每滿 300 元自動獲得一張摸彩券</p>
+      {/* Info Box - Updated: Removed rotation */}
+      <div className="w-full max-w-md mt-8 p-1 bg-gradient-to-r from-[#B91C1C] to-[#15803D] rounded-2xl shadow-2xl z-10 relative">
+        <div className="bg-[#FEF2F2] p-5 rounded-[14px] text-sm md:text-base text-[#991B1B] text-center relative overflow-hidden h-full">
+          <div className="relative z-10 leading-relaxed">
+            <h3 className="font-bold text-lg mb-2 flex items-center justify-center gap-2">
+              <Calendar className="w-5 h-5" /> 聖誕活動期間：12/15 ~ 12/24
+            </h3>
+            <div className="mt-2 text-[#7F1D1D] font-medium bg-white/60 p-3 rounded-xl backdrop-blur-sm border border-red-100">
+              <p>只要報手機號碼，消費金額</p>
+              <p className="text-lg font-bold my-1 text-[#B91C1C]">
+                ✨ 可跨日一直累積 ✨
+              </p>
+              <p>每滿 300 元自動獲得一張摸彩券</p>
+            </div>
+          </div>
+          {/* Decorations */}
+          <Star className="absolute -bottom-4 -left-4 w-20 h-20 text-[#15803D] opacity-10 rotate-12" />
+          <Star className="absolute -top-4 -right-4 w-20 h-20 text-[#15803D] opacity-10 -rotate-12" />
+        </div>
+      </div>
+
+      {/* Contact Info Footer (Dark Theme Optimized) */}
+      <div className="mt-8 w-full max-w-md bg-[#2C1810]/60 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-[#5D4037]/50 text-center space-y-3 z-10 relative text-[#EFEBE9]">
+        <h3 className="text-[#FCD34D] font-bold border-b border-[#5D4037]/50 pb-2 mb-2 flex items-center justify-center gap-2">
+          <Store className="w-4 h-4 text-[#EF4444]" /> 店家資訊
+        </h3>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-center gap-2">
+            <Phone className="w-5 h-5 text-[#EF4444] flex-shrink-0" />
+            <span className="font-medium text-[#D7CCC8]">餐盒訂購專線：</span>
+            <a
+              href="tel:0903282278"
+              className="font-bold text-white hover:text-[#FCD34D] transition-colors border-b border-[#EF4444] border-dashed"
+            >
+              0903-282278
+            </a>
+          </div>
+          <div className="flex items-start justify-center gap-2">
+            <MapPin className="w-5 h-5 text-[#4ADE80] flex-shrink-0 mt-0.5" />
+            <div className="text-left">
+              <span className="font-medium text-[#D7CCC8]">地址：</span>
+              <a
+                href="https://www.google.com/maps/search/?api=1&query=台中市北區文心路四段198-1號"
+                target="_blank"
+                rel="noreferrer"
+                className="text-white hover:text-[#4ADE80] transition-colors"
+              >
+                台中市北區文心路四段198-1號
+              </a>
+            </div>
           </div>
         </div>
-        {/* Decorations */}
-        <Star className="absolute -bottom-4 -left-4 w-20 h-20 text-[#15803D] opacity-10 rotate-12" />
-        <Star className="absolute -top-4 -right-4 w-20 h-20 text-[#15803D] opacity-10 -rotate-12" />
       </div>
     </div>
   );
