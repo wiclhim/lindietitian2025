@@ -48,6 +48,7 @@ import {
   Clock,
   Phone,
   MapPin,
+  RefreshCw, // 新增圖示
 } from "lucide-react";
 
 // --- Firebase Initialization (CodeSandbox 設定區) ---
@@ -1725,6 +1726,10 @@ function DataBackupSystem() {
   const [status, setStatus] = useState("");
   const [pendingFile, setPendingFile] = useState(null); // Track file waiting for confirm
 
+  // Reset Logic State
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetPin, setResetPin] = useState("");
+
   const customersRef = collection(db, "customers");
   const prizesRef = collection(db, "prizes");
 
@@ -1827,16 +1832,81 @@ function DataBackupSystem() {
     reader.readAsText(pendingFile);
   };
 
+  // --- Reset Event Logic ---
+  const handleResetEvent = async () => {
+    if (resetPin !== ADMIN_PIN) {
+      alert("密碼錯誤，無法執行重置");
+      return;
+    }
+
+    setProcessing(true);
+    setStatus("正在重置活動資料...");
+
+    try {
+      const batch = writeBatch(db);
+      let operationCount = 0;
+      const MAX_BATCH_SIZE = 450; // Safety margin below 500
+
+      // 1. Fetch all customers to reset metrics
+      const customersSnap = await getDocs(customersRef);
+      // 2. Fetch all prizes to delete
+      const prizesSnap = await getDocs(prizesRef);
+
+      // Helper to commit and refresh batch
+      const checkCommit = async () => {
+        if (operationCount >= MAX_BATCH_SIZE) {
+          await batch.commit();
+          operationCount = 0;
+          return writeBatch(db); // Return new batch
+        }
+        return batch;
+      };
+
+      // Reset Customers
+      let currentBatch = batch;
+      for (const doc of customersSnap.docs) {
+        currentBatch.update(doc.ref, {
+          totalSpent: 0,
+          usedTicketCount: 0,
+          history: [],
+          lastVisit: null,
+        });
+        operationCount++;
+        currentBatch = await checkCommit();
+      }
+
+      // Delete Prizes
+      for (const doc of prizesSnap.docs) {
+        currentBatch.delete(doc.ref);
+        operationCount++;
+        currentBatch = await checkCommit();
+      }
+
+      // Final commit
+      if (operationCount > 0) {
+        await currentBatch.commit();
+      }
+
+      setStatus("活動已重置！顧客消費已歸零，獎品已清空。");
+      setShowResetConfirm(false);
+      setResetPin("");
+    } catch (err) {
+      console.error(err);
+      setStatus("重置失敗: " + err.message);
+    }
+    setProcessing(false);
+  };
+
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-6 max-w-4xl mx-auto pb-12">
       <div className="bg-[#FFF8E1] p-6 rounded-3xl border-2 border-[#FDE68A] text-center">
         <h3 className="text-xl font-bold text-[#92400E] mb-2 flex items-center justify-center gap-2">
           <Settings className="w-6 h-6" /> 資料庫安全中心
         </h3>
         <p className="text-[#B45309] text-sm md:text-base">
-          建議每週備份一次，以防資料遺失。
+          管理備份與系統重置功能。
           <br />
-          下載的檔案請保存在安全的地方。
+          執行任何重置前，強烈建議先下載備份檔。
         </p>
       </div>
 
@@ -1925,6 +1995,69 @@ function DataBackupSystem() {
           {status}
         </div>
       )}
+
+      {/* Danger Zone: Event Reset */}
+      <div className="mt-8 border-t-2 border-red-100 pt-8">
+        <div className="bg-[#FEF2F2] p-6 md:p-8 rounded-3xl border border-red-200">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="text-left">
+              <h4 className="text-xl font-bold text-[#991B1B] flex items-center gap-2 mb-2">
+                <RefreshCw className="w-6 h-6" /> 活動重置 (危險區域)
+              </h4>
+              <p className="text-[#7F1D1D] text-sm leading-relaxed">
+                活動結束後使用此功能。
+                <br />
+                這將會 <strong className="underline">清空所有</strong>{" "}
+                顧客的消費金額、抽獎紀錄與現有獎品。
+                <br />
+                <span className="text-red-600 font-bold">
+                  (顧客的基本註冊資料會被保留，方便下次活動使用)
+                </span>
+              </p>
+            </div>
+
+            {showResetConfirm ? (
+              <div className="w-full md:w-auto bg-white p-4 rounded-xl border-2 border-red-300 shadow-sm animate-in zoom-in">
+                <p className="text-[#991B1B] font-bold text-sm mb-2 text-center">
+                  請輸入管理密碼確認重置
+                </p>
+                <input
+                  type="password"
+                  value={resetPin}
+                  onChange={(e) => setResetPin(e.target.value)}
+                  placeholder="輸入密碼"
+                  className="w-full p-2 border border-red-200 rounded-lg text-center mb-3 outline-none focus:border-red-500"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleResetEvent}
+                    className="flex-1 bg-red-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-red-700"
+                  >
+                    確認執行
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowResetConfirm(false);
+                      setResetPin("");
+                    }}
+                    className="flex-1 bg-gray-200 text-gray-700 font-bold py-2 rounded-lg text-sm hover:bg-gray-300"
+                  >
+                    取消
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowResetConfirm(true)}
+                disabled={processing}
+                className="w-full md:w-auto bg-white border-2 border-red-600 text-red-600 hover:bg-red-50 font-bold px-6 py-4 rounded-xl shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 whitespace-nowrap"
+              >
+                <Trash2 className="w-5 h-5" /> 結束活動並重置資料
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
