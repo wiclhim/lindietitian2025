@@ -543,7 +543,7 @@ function AdminLogin({ setView }) {
             type="password"
             value={pin}
             onChange={(e) => setPin(e.target.value)}
-            className="w-full p-4 border-2 border-[#D7CCC8] rounded-xl text-center text-3xl tracking-[0.5em] focus:border-[#B91C1C] focus:ring-1 focus:ring-[#B91C1C] outline-none transition-colors placeholder:tracking-normal"
+            className="w-full p-4 border-2 border-[#D7CCC8] rounded-xl text-center text-3xl tracking-[0.5em] focus:border-[#B91C1C] focus:ring-1 focus:ring-[#B91C1C] outline-none transition-colors placeholder:tracking-normal text-[#4A3728]"
             placeholder="請輸入密碼"
             inputMode="numeric" // Mobile numeric keypad
             autoFocus
@@ -1239,7 +1239,7 @@ function CheckInSystem() {
             }}
             onBlur={handleSearch}
             placeholder="輸入顧客手機"
-            className="flex-1 p-4 border-2 border-[#D7CCC8] rounded-xl outline-none focus:border-[#B91C1C] text-xl tracking-wider placeholder:tracking-normal bg-[#FAF9F6]"
+            className="flex-1 p-4 border-2 border-[#D7CCC8] rounded-xl outline-none focus:border-[#B91C1C] text-xl tracking-wider placeholder:tracking-normal bg-[#FAF9F6] text-[#4A3728]"
             inputMode="tel"
           />
           <button
@@ -1302,7 +1302,7 @@ function CheckInSystem() {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="$"
-              className="w-full p-4 border border-[#D7CCC8] rounded-xl text-2xl font-bold text-center outline-none focus:border-[#B91C1C] h-[60px]"
+              className="w-full p-4 border border-[#D7CCC8] rounded-xl text-2xl font-bold text-center outline-none focus:border-[#B91C1C] h-[60px] text-[#4A3728]"
               inputMode="numeric"
             />
           </div>
@@ -1583,7 +1583,7 @@ function LotterySystem() {
               value={prizeName}
               onChange={(e) => setPrizeName(e.target.value)}
               placeholder="例：免費餐盒"
-              className="w-full p-3 border border-[#D7CCC8] rounded-lg outline-none focus:border-[#B91C1C] text-lg bg-white"
+              className="w-full p-3 border border-[#D7CCC8] rounded-lg outline-none focus:border-[#B91C1C] text-lg bg-white text-[#4A3728]"
             />
           </div>
           <div className="w-full md:w-32">
@@ -1599,7 +1599,7 @@ function LotterySystem() {
                 const val = e.target.value;
                 setPrizeQty(val === "" ? "" : parseInt(val));
               }}
-              className="w-full p-3 border border-[#D7CCC8] rounded-lg text-center outline-none focus:border-[#B91C1C] text-lg bg-white"
+              className="w-full p-3 border border-[#D7CCC8] rounded-lg text-center outline-none focus:border-[#B91C1C] text-lg bg-white text-[#4A3728]"
             />
           </div>
           <button
