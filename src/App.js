@@ -16,6 +16,7 @@ import {
   writeBatch,
   getDocs,
   increment,
+  where,
 } from "firebase/firestore";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
 import {
@@ -43,6 +44,8 @@ import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
+  QrCode,
+  Clock,
 } from "lucide-react";
 
 // --- Firebase Initialization (CodeSandbox 設定區) ---
@@ -617,6 +620,8 @@ function CustomerLogin({ setView, setCurrentUserData }) {
 
 function CustomerDashboard({ userData, goToMenu }) {
   const [data, setData] = useState(userData);
+  const [myPrizes, setMyPrizes] = useState([]);
+  const [confirmRedeemId, setConfirmRedeemId] = useState(null); // ID of prize being redeemed
 
   useEffect(() => {
     if (!userData?.id) return;
@@ -626,16 +631,43 @@ function CustomerDashboard({ userData, goToMenu }) {
         setData({ id: docSnap.id, ...docSnap.data() });
       }
     });
-    return () => unsubscribe();
+
+    // Subscribe to Won Prizes (自動發放的獎品)
+    // Query prizes where winner.phone == user phone
+    const qPrizes = query(
+      collection(db, "prizes"),
+      where("winner.phone", "==", userData.phone)
+    );
+    const unsubPrizes = onSnapshot(qPrizes, (snapshot) => {
+      const prizes = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setMyPrizes(prizes);
+    });
+
+    return () => {
+      unsubscribe();
+      unsubPrizes();
+    };
   }, [userData]);
 
   const totalTickets = Math.floor((data.totalSpent || 0) / 300);
   const usedTickets = data.usedTicketCount || 0;
-  // const availableTickets = totalTickets - usedTickets;
   const nextTicketNeeds = 300 - ((data.totalSpent || 0) % 300);
 
   const openLine = () => {
     window.open(`https://line.me/R/ti/p/${LINE_ID}`, "_blank");
+  };
+
+  const handleRedeem = async (prizeId) => {
+    try {
+      await updateDoc(doc(db, "prizes", prizeId), {
+        redeemed: true,
+        redeemedAt: serverTimestamp(),
+      });
+      setConfirmRedeemId(null);
+    } catch (error) {
+      console.error("Redeem failed:", error);
+      alert("兌換失敗，請稍後再試");
+    }
   };
 
   return (
@@ -679,6 +711,98 @@ function CustomerDashboard({ userData, goToMenu }) {
           </div>
         </div>
 
+        {/* Won Prizes Section (NEW) */}
+        {myPrizes.length > 0 && (
+          <div className="bg-white p-6 rounded-2xl shadow-md border-l-8 border-[#FCD34D] animate-in slide-in-from-bottom-2">
+            <h3 className="font-bold text-[#92400E] mb-4 flex items-center gap-2 text-lg border-b border-[#FDE68A] pb-2">
+              <Gift className="text-[#D97706] w-6 h-6" /> 我的獎品匣
+            </h3>
+            <div className="space-y-3">
+              {myPrizes.map((prize) => (
+                <div
+                  key={prize.id}
+                  className={`p-4 rounded-xl border-2 flex flex-col gap-3 transition-all ${
+                    prize.redeemed
+                      ? "bg-gray-50 border-gray-200 grayscale"
+                      : "bg-[#FFFBEB] border-[#FCD34D] shadow-sm"
+                  }`}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p
+                        className={`font-bold text-lg ${
+                          prize.redeemed ? "text-gray-500" : "text-[#92400E]"
+                        }`}
+                      >
+                        {prize.name}
+                      </p>
+                      <p className="text-xs text-gray-400 font-mono mt-1">
+                        票號: {maskTicketId(prize.winner?.ticketId)}
+                      </p>
+                    </div>
+                    {prize.redeemed ? (
+                      <div className="flex flex-col items-end">
+                        <span className="bg-gray-200 text-gray-600 text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> 已兌換
+                        </span>
+                        {prize.redeemedAt && (
+                          <span className="text-[10px] text-gray-400 mt-1">
+                            {new Date(
+                              prize.redeemedAt.seconds * 1000
+                            ).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="bg-[#FEF3C7] text-[#D97706] text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1 animate-pulse">
+                        <Star className="w-3 h-3" /> 未兌換
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Redeem Action */}
+                  {!prize.redeemed && (
+                    <div className="pt-2 border-t border-[#FDE68A]/50">
+                      {confirmRedeemId === prize.id ? (
+                        <div className="bg-red-50 p-3 rounded-lg border border-red-100 flex flex-col gap-2">
+                          <p className="text-red-700 text-sm font-bold flex items-start gap-2">
+                            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                            請出示給店員確認
+                          </p>
+                          <p className="text-xs text-red-500">
+                            點擊確認後即視為已使用
+                          </p>
+                          <div className="flex gap-2 mt-1">
+                            <button
+                              onClick={() => handleRedeem(prize.id)}
+                              className="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm font-bold py-2 rounded-lg shadow-sm"
+                            >
+                              確認兌換
+                            </button>
+                            <button
+                              onClick={() => setConfirmRedeemId(null)}
+                              className="flex-1 bg-white border border-gray-300 text-gray-600 text-sm font-bold py-2 rounded-lg hover:bg-gray-50"
+                            >
+                              取消
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setConfirmRedeemId(prize.id)}
+                          className="w-full bg-[#D97706] hover:bg-[#B45309] text-white font-bold py-2 rounded-lg shadow-[0_2px_0_rgb(146,64,14)] active:shadow-none active:translate-y-0.5 transition-all text-sm flex justify-center items-center gap-2"
+                        >
+                          <QrCode className="w-4 h-4" /> 立即兌換
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Status Bar */}
         <div className="bg-white p-6 rounded-2xl shadow-md border-l-8 border-[#D97706] flex flex-col gap-3">
           <div className="flex justify-between items-center border-b border-dashed border-gray-200 pb-3">
@@ -706,7 +830,7 @@ function CustomerDashboard({ userData, goToMenu }) {
           </p>
         </div>
 
-        {/* My Tickets List (NEW) */}
+        {/* My Tickets List */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#E6D5B8]">
           <h3 className="font-bold text-[#5D4037] mb-4 flex items-center gap-2 text-lg">
             <Ticket className="text-[#B91C1C] w-6 h-6" /> 我的摸彩券
@@ -1236,6 +1360,7 @@ function LotterySystem() {
             name: prizeName,
             claimed: false,
             winner: null,
+            redeemed: false, // New Field
             createdAt: serverTimestamp(),
           })
         );
@@ -1288,6 +1413,7 @@ function LotterySystem() {
         // 1. 更新獎品狀態
         updateDoc(doc(prizesRef, prizeId), {
           claimed: true,
+          redeemed: false,
           winner: {
             name: luckyWinner.name,
             phone: luckyWinner.phone,
@@ -1413,14 +1539,32 @@ function LotterySystem() {
                   {p.name}
                 </p>
                 {p.claimed && (
-                  <div className="text-sm text-[#15803D] mt-1">
-                    <p className="font-bold">
+                  <div className="text-sm mt-1">
+                    <p className="font-bold text-[#15803D]">
                       🎉 {p.winner?.name} ({p.winner?.phone?.substring(0, 4)}
                       ******)
                     </p>
-                    <p className="text-xs text-gray-400 font-mono">
-                      Ticket: {maskTicketId(p.winner?.ticketId)}
-                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-xs text-gray-400 font-mono">
+                        Ticket: {maskTicketId(p.winner?.ticketId)}
+                      </p>
+                      {/* Admin Redemption Check */}
+                      {p.redeemed ? (
+                        <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> 已於{" "}
+                          {p.redeemedAt
+                            ? new Date(
+                                p.redeemedAt.seconds * 1000
+                              ).toLocaleDateString()
+                            : ""}
+                          兌換
+                        </span>
+                      ) : (
+                        <span className="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> 尚未兌換
+                        </span>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
