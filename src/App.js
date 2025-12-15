@@ -48,7 +48,8 @@ import {
   Clock,
   Phone,
   MapPin,
-  RefreshCw, // 新增圖示
+  RefreshCw,
+  HelpCircle, // 新增：用於彩蛋
 } from "lucide-react";
 
 // --- Firebase Initialization (CodeSandbox 設定區) ---
@@ -93,7 +94,7 @@ const maskTicketId = (ticketId) => {
   return ticketId.replace(/^(\d{4})\d{6}(.*)$/, "$1******$2");
 };
 
-// --- Snow Effect Component (New) ---
+// --- Snow Effect Component ---
 const SnowEffect = () => {
   // 生成 50 個隨機雪花
   const snowflakes = Array.from({ length: 50 }).map((_, i) => ({
@@ -146,6 +147,90 @@ const SnowEffect = () => {
     </div>
   );
 };
+
+// --- Easter Egg Modal Component (New) ---
+const EasterEggModal = ({ onClose }) => {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="bg-[#B91C1C] p-8 rounded-3xl border-4 border-[#FCD34D] text-center max-w-sm w-full relative overflow-hidden shadow-2xl animate-in zoom-in duration-300">
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 text-[#FCD34D] hover:text-white"
+        >
+          <XCircle className="w-8 h-8" />
+        </button>
+        <div className="mb-4 flex justify-center">
+            <div className="bg-white p-4 rounded-full shadow-lg animate-bounce">
+                <img src={LOGO_URL} alt="Logo" className="w-16 h-16 object-contain" />
+            </div>
+        </div>
+        <h2 className="text-3xl font-bold text-[#FCD34D] mb-2 drop-shadow-md">Ho Ho Ho!</h2>
+        <h3 className="text-xl font-bold text-white mb-4">發現隱藏彩蛋！</h3>
+        <p className="text-[#FEF2F2] text-lg leading-relaxed mb-6 font-medium">
+          感謝您對木木營養食的支持！<br/>
+          祝您聖誕快樂，<br/>
+          新的一年健康滿滿！
+          <br/>
+          <span className="text-sm opacity-80 mt-2 block">(別忘了告訴店長你發現了這個秘密!)</span>
+        </p>
+        <button
+          onClick={onClose}
+          className="bg-[#FCD34D] text-[#92400E] px-6 py-3 rounded-xl font-bold hover:bg-[#FDE68A] transition-colors shadow-lg w-full"
+        >
+          收下祝福 🎁
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// --- Prize Showcase Component (New based on image) ---
+const PrizeShowcase = () => {
+    const prizes = [
+        { icon: <Utensils className="w-5 h-5 text-red-600" />, text: "單點買一送一 (限同品項)" },
+        { icon: <Store className="w-5 h-5 text-orange-600" />, text: "餐盒買一送一 (限同品項)" },
+        { icon: <Ticket className="w-5 h-5 text-green-600" />, text: "20元折價券 x3" },
+        { icon: <Ticket className="w-5 h-5 text-green-600" />, text: "10元折價券 x5" },
+        { icon: <Star className="w-5 h-5 text-yellow-600" />, text: "茶香豆干 x5" },
+        { icon: <HelpCircle className="w-5 h-5 text-purple-600 animate-pulse" />, text: "聖誕隱藏小彩蛋 ??" },
+    ];
+
+    return (
+        <div className="w-full max-w-md mt-6 bg-white/95 backdrop-blur-sm p-5 md:p-6 rounded-2xl shadow-xl border-4 border-[#C5A059] relative overflow-hidden transform -rotate-1 hover:rotate-0 transition-transform duration-300 z-10">
+            {/* Ribbons */}
+            <div className="absolute top-0 right-0 w-16 h-16 overflow-hidden">
+                <div className="bg-[#B91C1C] text-white text-[10px] font-bold py-1 px-8 absolute top-3 -right-6 rotate-45 shadow-sm">
+                    Prizes
+                </div>
+            </div>
+
+            {/* Title */}
+            <h3 className="text-xl md:text-2xl font-bold text-[#5D4037] text-center mb-4 flex items-center justify-center gap-2 border-b-2 border-dashed border-[#E6D5B8] pb-3">
+                <PartyPopper className="w-7 h-7 text-[#B91C1C]" />
+                豐富獎項等你抽！
+            </h3>
+
+            {/* List */}
+            <ul className="space-y-3">
+                {prizes.map((p, i) => (
+                    <li key={i} className="flex items-center gap-3 text-[#4A3728] font-bold text-base md:text-lg group hover:bg-[#FFF8E1] p-1 rounded-lg transition-colors">
+                        <div className="bg-[#FAF9F6] p-2 rounded-full shadow-inner border border-[#E6D5B8] group-hover:scale-110 transition-transform">
+                            {p.icon}
+                        </div>
+                        {p.text}
+                    </li>
+                ))}
+            </ul>
+
+            {/* Draw Date */}
+            <div className="mt-5 bg-gradient-to-r from-[#B91C1C] to-[#991B1B] text-white text-center py-3 rounded-xl font-bold shadow-md flex items-center justify-center gap-2 animate-pulse">
+                <Calendar className="w-5 h-5" />
+                <span>公開抽獎日：12/25</span>
+            </div>
+        </div>
+    );
+};
+
 
 // --- Main Application Component ---
 export default function ChristmasEventApp() {
@@ -382,10 +467,33 @@ function MenuView({ goBack }) {
 // --- 1. Public Views (Landing & Login) ---
 
 function LandingPage({ setView, goToMenu }) {
+  const [clickCount, setClickCount] = useState(0); // State for Easter Egg
+  const [showEasterEgg, setShowEasterEgg] = useState(false);
+
+  // Easter Egg Trigger Logic
+  const handleLogoClick = () => {
+    setClickCount(prev => {
+        const newCount = prev + 1;
+        if (newCount === 5) { // 5 Clicks to trigger
+            setShowEasterEgg(true);
+            return 0; // Reset
+        }
+        return newCount;
+    });
+  };
+
   return (
     <div className="flex flex-col items-center justify-center pt-4 md:pt-10 px-2 space-y-8 animate-in fade-in zoom-in duration-500">
+      
+      {/* Easter Egg Modal */}
+      {showEasterEgg && <EasterEggModal onClose={() => setShowEasterEgg(false)} />}
+
       {/* Logo Section - Modified to use Red-Green Gradient Frame */}
-      <div className="bg-gradient-to-r from-[#B91C1C] to-[#15803D] p-[6px] rounded-full shadow-2xl w-40 h-40 md:w-56 md:h-56 flex items-center justify-center overflow-hidden mb-2 relative z-10">
+      {/* Click handler added here for Easter Egg */}
+      <div 
+        onClick={handleLogoClick}
+        className="bg-gradient-to-r from-[#B91C1C] to-[#15803D] p-[6px] rounded-full shadow-2xl w-40 h-40 md:w-56 md:h-56 flex items-center justify-center overflow-hidden mb-2 relative z-10 cursor-pointer active:scale-95 transition-transform"
+      >
         <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-white">
           <img
             src={LOGO_URL}
@@ -410,7 +518,10 @@ function LandingPage({ setView, goToMenu }) {
 
       <div className="text-center space-y-3 md:space-y-4 max-w-lg z-10 relative">
         {/* Title updated for Dark Background */}
-        <h2 className="text-3xl md:text-5xl font-extrabold text-[#FFF8E7] leading-tight drop-shadow-lg">
+        <h2 
+            onClick={handleLogoClick} // Also trigger on title click
+            className="text-3xl md:text-5xl font-extrabold text-[#FFF8E7] leading-tight drop-shadow-lg cursor-pointer select-none"
+        >
           歡迎光臨
           <br />
           <span className="text-[#EF4444] inline-block mt-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
@@ -432,7 +543,31 @@ function LandingPage({ setView, goToMenu }) {
         </p>
       </div>
 
-      <div className="w-full max-w-sm md:max-w-md space-y-4 z-10 relative">
+      {/* Info Box - Activity Rules */}
+      <div className="w-full max-w-md mt-2 p-1 bg-gradient-to-r from-[#B91C1C] to-[#15803D] rounded-2xl shadow-2xl z-10 relative">
+        <div className="bg-[#FEF2F2] p-5 rounded-[14px] text-sm md:text-base text-[#991B1B] text-center relative overflow-hidden h-full">
+          <div className="relative z-10 leading-relaxed">
+            <h3 className="font-bold text-lg mb-2 flex items-center justify-center gap-2">
+              <Calendar className="w-5 h-5" /> 聖誕活動期間：12/15 ~ 12/24
+            </h3>
+            <div className="mt-2 text-[#7F1D1D] font-medium bg-white/60 p-3 rounded-xl backdrop-blur-sm border border-red-100">
+              <p>只要報手機號碼，消費金額</p>
+              <p className="text-lg font-bold my-1 text-[#B91C1C]">
+                ✨ 可跨日一直累積 ✨
+              </p>
+              <p>每滿 300 元自動獲得一張摸彩券</p>
+            </div>
+          </div>
+          {/* Decorations */}
+          <Star className="absolute -bottom-4 -left-4 w-20 h-20 text-[#15803D] opacity-10 rotate-12" />
+          <Star className="absolute -top-4 -right-4 w-20 h-20 text-[#15803D] opacity-10 -rotate-12" />
+        </div>
+      </div>
+
+      {/* NEW: Prize Showcase Section (Added based on request) */}
+      <PrizeShowcase />
+
+      <div className="w-full max-w-sm md:max-w-md space-y-4 z-10 relative pt-4">
         {/* Menu Button */}
         <button
           onClick={goToMenu}
@@ -457,27 +592,6 @@ function LandingPage({ setView, goToMenu }) {
         >
           <Lock className="w-6 h-6 text-[#C5A059]" /> 店長登入 (後台)
         </button>
-      </div>
-
-      {/* Info Box - Updated: Removed rotation */}
-      <div className="w-full max-w-md mt-8 p-1 bg-gradient-to-r from-[#B91C1C] to-[#15803D] rounded-2xl shadow-2xl z-10 relative">
-        <div className="bg-[#FEF2F2] p-5 rounded-[14px] text-sm md:text-base text-[#991B1B] text-center relative overflow-hidden h-full">
-          <div className="relative z-10 leading-relaxed">
-            <h3 className="font-bold text-lg mb-2 flex items-center justify-center gap-2">
-              <Calendar className="w-5 h-5" /> 聖誕活動期間：12/15 ~ 12/24
-            </h3>
-            <div className="mt-2 text-[#7F1D1D] font-medium bg-white/60 p-3 rounded-xl backdrop-blur-sm border border-red-100">
-              <p>只要報手機號碼，消費金額</p>
-              <p className="text-lg font-bold my-1 text-[#B91C1C]">
-                ✨ 可跨日一直累積 ✨
-              </p>
-              <p>每滿 300 元自動獲得一張摸彩券</p>
-            </div>
-          </div>
-          {/* Decorations */}
-          <Star className="absolute -bottom-4 -left-4 w-20 h-20 text-[#15803D] opacity-10 rotate-12" />
-          <Star className="absolute -top-4 -right-4 w-20 h-20 text-[#15803D] opacity-10 -rotate-12" />
-        </div>
       </div>
 
       {/* Contact Info Footer (Dark Theme Optimized) */}
