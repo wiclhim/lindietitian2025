@@ -171,7 +171,7 @@ const EasterEggModal = ({ onClose }) => {
           祝您聖誕快樂，<br/>
           新的一年健康滿滿！
           <br/>
-          <span className="text-sm opacity-80 mt-2 block">(別忘了告訴店長你發現了這個秘密!)</span>
+          <span className="text-sm opacity-80 mt-2 block">(別忘了告訴店長你發現了這個秘密，可獲得聖誕小禮物!)</span>
         </p>
         <button
           onClick={onClose}
@@ -192,8 +192,16 @@ const PrizeShowcase = () => {
         { icon: <Ticket className="w-5 h-5 text-green-600" />, text: "20元折價券 x3" },
         { icon: <Ticket className="w-5 h-5 text-green-600" />, text: "10元折價券 x5" },
         { icon: <Star className="w-5 h-5 text-yellow-600" />, text: "茶香豆干 x5" },
-        { icon: <HelpCircle className="w-5 h-5 text-purple-600 animate-pulse" />, text: "聖誕隱藏小彩蛋 ??" },
+        { 
+          icon: <HelpCircle className="w-5 h-5 text-purple-600 animate-pulse" />, 
+          text: "聖誕隱藏小彩蛋 ??",
+          isEasterEgg: true // 標記為彩蛋項目
+        },
     ];
+
+    const handleHint = () => {
+        alert("🤫 偷偷告訴你：\n試著對最上方的「標題 Logo」.....，會有神奇的事情發生喔！");
+    };
 
     return (
         <div className="w-full max-w-md mt-6 bg-white/95 backdrop-blur-sm p-5 md:p-6 rounded-2xl shadow-xl border-4 border-[#C5A059] relative overflow-hidden transform -rotate-1 hover:rotate-0 transition-transform duration-300 z-10">
@@ -213,11 +221,23 @@ const PrizeShowcase = () => {
             {/* List */}
             <ul className="space-y-3">
                 {prizes.map((p, i) => (
-                    <li key={i} className="flex items-center gap-3 text-[#4A3728] font-bold text-base md:text-lg group hover:bg-[#FFF8E1] p-1 rounded-lg transition-colors">
-                        <div className="bg-[#FAF9F6] p-2 rounded-full shadow-inner border border-[#E6D5B8] group-hover:scale-110 transition-transform">
+                    <li 
+                        key={i} 
+                        onClick={p.isEasterEgg ? handleHint : undefined}
+                        title={p.isEasterEgg ? "點我查看提示！" : ""}
+                        className={`flex items-center gap-3 text-[#4A3728] font-bold text-base md:text-lg group hover:bg-[#FFF8E1] p-1 rounded-lg transition-all ${
+                            p.isEasterEgg ? "cursor-pointer hover:scale-105" : ""
+                        }`}
+                    >
+                        <div className={`bg-[#FAF9F6] p-2 rounded-full shadow-inner border border-[#E6D5B8] transition-transform ${
+                             p.isEasterEgg ? "group-hover:rotate-12" : "group-hover:scale-110"
+                        }`}>
                             {p.icon}
                         </div>
                         {p.text}
+                        {p.isEasterEgg && (
+                            <span className="text-xs text-gray-400 font-normal ml-auto border border-gray-200 rounded px-1.5 py-0.5 bg-gray-50 group-hover:bg-[#B91C1C] group-hover:text-white transition-colors">點我</span>
+                        )}
                     </li>
                 ))}
             </ul>
