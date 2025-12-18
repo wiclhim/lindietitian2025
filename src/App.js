@@ -529,7 +529,7 @@ const PrizeShowcase = ({ theme }) => {
             </ul>
             <div className="mt-5 text-white text-center py-3 rounded-xl font-bold shadow-md flex items-center justify-center gap-2 animate-pulse"
                  style={{ background: `linear-gradient(to right, ${theme.colors.primary}, ${theme.colors.primaryHover})` }}>
-                <Calendar className="w-5 h-5" /> <span>公開抽獎日：敬請期待</span>
+                <Calendar className="w-5 h-5" /> <span>公開抽獎日：12/25</span>
             </div>
         </div>
     );
