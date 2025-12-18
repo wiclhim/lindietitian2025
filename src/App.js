@@ -501,7 +501,7 @@ const PrizeShowcase = ({ theme }) => {
         { icon: <HelpCircle className="w-5 h-5 animate-pulse" style={{ color: theme.colors.secondary }} />, text: `${theme.title}隱藏彩蛋 ??`, isEasterEgg: true },
     ];
     const handleHint = () => {
-        alert("🤫 偷偷告訴你：\n試著對最上方的「Logo」連點 5 下.....，會有神奇的事情發生喔！");
+        alert("🤫 偷偷告訴你：\n試著對最上方的「Logo」.....，會有神奇的事情發生喔！");
     };
 
     return (
