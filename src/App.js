@@ -18,6 +18,7 @@ import {
   increment,
   where,
   arrayUnion, 
+  Timestamp, // Add Timestamp import if needed for explicit typing, though JS Date works with Firebase SDK
 } from "firebase/firestore";
 import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "firebase/auth";
 import {
@@ -63,7 +64,8 @@ import {
   Flower2,
   Leaf,
   Layers,
-  Coffee
+  Coffee,
+  Trophy
 } from "lucide-react";
 
 // --- Firebase Initialization ---
@@ -439,6 +441,57 @@ const RedeemModal = ({ isOpen, onClose, onConfirm, prizeName, milestone, isProce
   );
 };
 
+const WinnersList = ({ theme }) => {
+  const [winners, setWinners] = useState([]);
+
+  useEffect(() => {
+    if (!db) return;
+    // 使用客戶端過濾以避免建立索引的麻煩 (適合中小型應用)
+    const unsubscribe = onSnapshot(collection(db, "prizes"), (snapshot) => {
+      const fetchedWinners = snapshot.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .filter((p) => p.claimed === true && p.type !== 'loyalty_reward'); // 排除集點兌換，只顯示抽獎中獎
+      // 根據建立時間或名稱簡單排序
+      fetchedWinners.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+      setWinners(fetchedWinners);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  if (winners.length === 0) return null;
+
+  return (
+    <div className="w-full max-w-md mt-6 backdrop-blur-sm p-5 rounded-2xl shadow-xl border-4 relative overflow-hidden animate-in fade-in slide-in-from-bottom-2 z-10"
+         style={{ backgroundColor: 'rgba(255,255,255,0.95)', borderColor: theme.colors.cardBorder }}>
+        <h3 className="text-xl font-bold text-center mb-4 flex items-center justify-center gap-2 border-b-2 border-dashed pb-3"
+            style={{ color: theme.colors.textDark, borderColor: theme.colors.accent }}>
+            <PartyPopper className="w-6 h-6 animate-bounce" style={{ color: theme.colors.primary }} /> 恭喜中獎名單
+        </h3>
+        <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
+            {winners.map((w) => (
+                <div key={w.id} className="flex justify-between items-center bg-red-50 p-3 rounded-xl border border-red-100 shadow-sm">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-white p-2 rounded-full shadow-sm border border-red-100">
+                            <Trophy className="w-4 h-4" style={{ color: theme.colors.secondary }} />
+                        </div>
+                        <div>
+                            <p className="font-bold text-base" style={{ color: theme.colors.textDark }}>{w.name}</p>
+                            <p className="text-xs text-gray-500 font-medium">
+                                得主: {w.winner?.name || "幸運兒"} 
+                                <span className="ml-1 opacity-70">
+                                    ({w.winner?.phone?.slice(0, 4)}***{w.winner?.phone?.slice(-3)})
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    <span className="text-xs font-bold px-2 py-1 rounded text-white shadow-sm" style={{ backgroundColor: theme.colors.primary }}>已開獎</span>
+                </div>
+            ))}
+        </div>
+    </div>
+  );
+};
+
 const LoyaltyPromoCard = ({ theme }) => {
     return (
         <div className="w-full max-w-md mt-6 backdrop-blur-sm p-5 rounded-2xl shadow-xl border-4 relative overflow-hidden z-10 animate-in fade-in slide-in-from-bottom-2"
@@ -590,20 +643,20 @@ const LoyaltyCard = ({ points = 0, redeemedMilestones = [], onRedeemClick, theme
                 >
                    <div 
                       className={`
-                         w-10 h-10 md:w-12 md:h-12 rounded-full border-2 flex items-center justify-center relative transition-all duration-500
-                         ${canRedeem ? "animate-bounce shadow-lg" : ""}
-                         ${isMilestone && !isAchieved ? "border-dashed" : ""}
-                       `}
+                          w-10 h-10 md:w-12 md:h-12 rounded-full border-2 flex items-center justify-center relative transition-all duration-500
+                          ${canRedeem ? "animate-bounce shadow-lg" : ""}
+                          ${isMilestone && !isAchieved ? "border-dashed" : ""}
+                        `}
                       style={{ backgroundColor: bg, borderColor: border, color: text }}
                    >
                       {isRedeemed ? (
-                         <CheckCircle2 className="w-6 h-6 md:w-7 md:h-7" />
+                          <CheckCircle2 className="w-6 h-6 md:w-7 md:h-7" />
                       ) : canRedeem ? (
-                         <Gift className="w-6 h-6" style={{ color: theme.colors.primary }} />
+                          <Gift className="w-6 h-6" style={{ color: theme.colors.primary }} />
                       ) : isMilestone ? (
-                         <Gift className="w-5 h-5 opacity-50" />
+                          <Gift className="w-5 h-5 opacity-50" />
                       ) : (
-                         <span className="font-mono font-bold text-sm md:text-base">{num}</span>
+                          <span className="font-mono font-bold text-sm md:text-base">{num}</span>
                       )}
                    </div>
                    
@@ -929,6 +982,7 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both' }) {
       )}
 
       {!isNone && showLottery && <PrizeShowcase theme={theme} />}
+      {!isNone && showLottery && <WinnersList theme={theme} />}
       
       {!isNone && showLoyalty && <LoyaltyPromoCard theme={theme} />}
 
@@ -1083,9 +1137,11 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
     if (!userData?.id) return;
     
     if (isDemoMode) {
-        // Demo Data
+        // Demo Data - Add fake expiration dates
+        const nextYear = new Date();
+        nextYear.setFullYear(nextYear.getFullYear() + 1);
         setMyPrizes([
-            { id: "demo-prize-1", name: "🎁 集點好禮：免費小菜", claimed: true, redeemed: false, winner: { ticketId: "LOYALTY-10PTS-9999" } },
+            { id: "demo-prize-1", name: "🎁 集點好禮：免費小菜", claimed: true, redeemed: false, winner: { ticketId: "LOYALTY-10PTS-9999" }, expiresAt: { seconds: nextYear.getTime() / 1000, toDate: () => nextYear } },
             { id: "demo-prize-2", name: "🎁 集點好禮：茶香豆干", claimed: true, redeemed: true, redeemedAt: { seconds: Date.now()/1000 }, winner: { ticketId: "LOYALTY-10PTS-8888" } }
         ]);
         return;
@@ -1150,6 +1206,11 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
       const prizeName = loyaltySettings[selectedMilestone] || theme.milestoneText;
       const prizesRef = collection(db, "prizes");
       const customerRef = doc(db, "customers", data.id);
+      
+      // 計算一年後的過期時間
+      const expiresAt = new Date();
+      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+
       try {
           const batch = writeBatch(db);
           const newPrizeRef = doc(prizesRef);
@@ -1157,7 +1218,9 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
               name: `🎁 集點好禮：${prizeName}`,
               claimed: true, redeemed: false,
               winner: { name: data.name || "貴賓", phone: userData.id, ticketId: `LOYALTY-${selectedMilestone}PTS-${Date.now().toString().slice(-4)}` },
-              type: 'loyalty_reward', createdAt: serverTimestamp(),
+              type: 'loyalty_reward', 
+              createdAt: serverTimestamp(),
+              expiresAt: expiresAt, // 設定過期時間
           });
           if (Number(selectedMilestone) === 20) {
               batch.set(customerRef, { points: increment(-20), redeemedMilestones: [] }, { merge: true });
@@ -1174,8 +1237,21 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
       setIsProcessing(false);
   };
 
-  // Filter only unredeemed prizes for the main view
-  const activePrizes = myPrizes.filter(p => !p.redeemed);
+  // Filter only unredeemed prizes AND not expired for the main view
+  const activePrizes = myPrizes.filter(p => {
+      // 1. 已兌換的移除
+      if (p.redeemed) return false;
+      
+      // 2. 檢查是否過期
+      if (p.expiresAt) {
+          const now = new Date();
+          // 相容 Firestore Timestamp 和普通 Date 物件 (Demo模式)
+          const expDate = p.expiresAt.toDate ? p.expiresAt.toDate() : new Date(p.expiresAt);
+          if (expDate < now) return false; // 已過期，移除
+      }
+      
+      return true;
+  });
 
   return (
     <div className="space-y-6 md:space-y-0 md:grid md:grid-cols-2 md:gap-8 animate-in fade-in duration-500 relative">
@@ -1208,7 +1284,21 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
               {activePrizes.map((prize) => (
                 <div key={prize.id} className={`p-4 rounded-xl border-2 flex flex-col gap-3 transition-all ${prize.redeemed ? "bg-gray-50 border-gray-200 grayscale" : "bg-gray-50 shadow-sm"}`} style={{ borderColor: prize.redeemed ? '#E5E7EB' : theme.colors.accent }}>
                   <div className="flex justify-between items-start">
-                    <div><p className={`font-bold text-lg ${prize.redeemed ? "text-gray-500" : ""}`} style={{ color: prize.redeemed ? undefined : theme.colors.textDark }}>{prize.name}</p><p className="text-xs text-gray-400 font-mono mt-1">票號: {maskTicketId(prize.winner?.ticketId)}</p></div>
+                    <div>
+                        <p className={`font-bold text-lg ${prize.redeemed ? "text-gray-500" : ""}`} style={{ color: prize.redeemed ? undefined : theme.colors.textDark }}>{prize.name}</p>
+                        <div className="text-xs text-gray-400 font-mono mt-1 space-y-1">
+                            <p>票號: {maskTicketId(prize.winner?.ticketId)}</p>
+                            {prize.expiresAt && !prize.redeemed && (
+                                <p className="text-orange-500 font-medium flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
+                                    效期至: {
+                                        (prize.expiresAt.toDate ? prize.expiresAt.toDate() : new Date(prize.expiresAt))
+                                        .toLocaleDateString()
+                                    }
+                                </p>
+                            )}
+                        </div>
+                    </div>
                     {prize.redeemed ? (<div className="flex flex-col items-end"><span className="bg-gray-200 text-gray-600 text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> 已兌換</span></div>) : (<span className="bg-[#FEF3C7] text-[#D97706] text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1 animate-pulse"><Star className="w-3 h-3" /> 未兌換</span>)}
                   </div>
                   {!prize.redeemed && (
@@ -1525,7 +1615,16 @@ function CheckInSystem({ theme, isDemoMode }) {
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");
   const [bentoQty, setBentoQty] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  
+  // 修正：使用本地時區來初始化日期，避免 UTC+0 造成跨日問題
+  const getTodayDate = () => {
+    const d = new Date();
+    // 調整為當地時間：減去時區偏移量 (getTimezoneOffset 回傳的是 UTC - Local 的分鐘數，所以要減去)
+    const localDate = new Date(d.getTime() - (d.getTimezoneOffset() * 60000));
+    return localDate.toISOString().split("T")[0];
+  };
+  const [date, setDate] = useState(getTodayDate());
+  
   const [currentCustomer, setCurrentCustomer] = useState(null);
   const [msg, setMsg] = useState({ type: "", text: "" });
   const customersRef = collection(db, "customers");
@@ -1745,11 +1844,21 @@ function LotterySystem({ theme, isDemoMode }) {
       else {
         const luckyWinner = pool[Math.floor(Math.random() * pool.length)];
         setWinner(luckyWinner); setIsDrawing(false);
+        
+        // 計算一年後的過期時間
+        const expiresAt = new Date();
+        expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+
         if (!isDemoMode) {
-            updateDoc(doc(prizesRef, prizeId), { claimed: true, redeemed: false, winner: { name: luckyWinner.name || "顧客", phone: luckyWinner.phone, ticketId: luckyWinner.currentTicketId } });
+            updateDoc(doc(prizesRef, prizeId), { 
+                claimed: true, 
+                redeemed: false, 
+                winner: { name: luckyWinner.name || "顧客", phone: luckyWinner.phone, ticketId: luckyWinner.currentTicketId },
+                expiresAt: expiresAt // 設定過期時間
+            });
             updateDoc(doc(customersRef, luckyWinner.id), { usedTicketCount: increment(1) });
         } else {
-             setPrizes(prev => prev.map(p => p.id === prizeId ? { ...p, claimed: true, winner: { name: "測試得主", phone: luckyWinner.phone, ticketId: "DEMO-TICKET" } } : p));
+             setPrizes(prev => prev.map(p => p.id === prizeId ? { ...p, claimed: true, winner: { name: "測試得主", phone: luckyWinner.phone, ticketId: "DEMO-TICKET" }, expiresAt: expiresAt } : p));
         }
       }
     }; animate();
