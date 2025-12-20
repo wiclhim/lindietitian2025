@@ -18,7 +18,7 @@ import {
   increment,
   where,
   arrayUnion, 
-  Timestamp, // Add Timestamp import if needed for explicit typing, though JS Date works with Firebase SDK
+  Timestamp, 
 } from "firebase/firestore";
 import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "firebase/auth";
 import {
@@ -81,7 +81,6 @@ const firebaseConfig = {
 
 let app, auth, db;
 try {
-  // Check if firebase is already initialized to prevent re-initialization errors in dev HMR
   if (!window.firebaseAppInitialized) {
       app = initializeApp(firebaseConfig);
       window.firebaseAppInitialized = true;
@@ -100,6 +99,7 @@ const ADMIN_PIN = "1225";
 const LINE_ID = "@171kndrh";
 const LOGO_URL = "https://i.ibb.co/GvSs1BtJ/1765508995830.png";
 const MENU_URL = "https://i.ibb.co/Rk0Ccjqn/image.jpg";
+const appId = typeof window.__app_id !== 'undefined' ? window.__app_id : 'default-app-id';
 
 // --- Theme System Configuration ---
 const THEMES = {
@@ -107,10 +107,10 @@ const THEMES = {
     id: 'christmas',
     name: '🎄 歡樂耶誕',
     colors: {
-      primary: '#B91C1C', // Red
+      primary: '#B91C1C', 
       primaryHover: '#991B1B',
-      secondary: '#15803D', // Green
-      accent: '#FCD34D', // Gold
+      secondary: '#15803D', 
+      accent: '#FCD34D', 
       bgGradient: 'from-[#4A3426] via-[#2F1E16] to-[#150D0A]',
       textMain: '#EFEBE9',
       textDark: '#5D4037',
@@ -128,10 +128,10 @@ const THEMES = {
     id: 'cny',
     name: '🧧 恭喜發財',
     colors: {
-      primary: '#D32F2F', // Bright Red
+      primary: '#D32F2F', 
       primaryHover: '#B71C1C',
-      secondary: '#F57F17', // Orange/Gold
-      accent: '#FFD700', // Pure Gold
+      secondary: '#F57F17', 
+      accent: '#FFD700', 
       bgGradient: 'from-[#8E0000] via-[#5C0000] to-[#2b0000]',
       textMain: '#FFF8E1',
       textDark: '#4E342E',
@@ -149,14 +149,14 @@ const THEMES = {
     id: 'daily',
     name: '🌿 文青食光',
     colors: {
-      primary: '#7C9082', // Sage Green (鼠尾草綠)
+      primary: '#7C9082', 
       primaryHover: '#5F7365',
-      secondary: '#8D7B68', // Earthy Brown (大地色)
-      accent: '#C8B6A6', // Soft Beige (米杏色)
-      bgGradient: 'from-[#F0F4F1] via-[#E2E8E4] to-[#D5DDD8]', // Light Sage Gradient
-      textMain: '#2F3E33', // Dark Greenish Grey
-      textDark: '#4A4238', // Dark Earth
-      cardBg: '#FCFDFD', // Off White
+      secondary: '#8D7B68', 
+      accent: '#C8B6A6', 
+      bgGradient: 'from-[#F0F4F1] via-[#E2E8E4] to-[#D5DDD8]', 
+      textMain: '#2F3E33', 
+      textDark: '#4A4238', 
+      cardBg: '#FCFDFD', 
       cardBorder: '#7C9082',
       buttonText: '#FFFFFF',
       success: '#556B2F'
@@ -170,14 +170,14 @@ const THEMES = {
     id: 'halloween',
     name: '🎃 萬聖搞怪',
     colors: {
-      primary: '#EA580C', // Pumpkin Orange (南瓜橘)
+      primary: '#EA580C', 
       primaryHover: '#C2410C',
-      secondary: '#1F2937', // Charcoal Black (炭黑) - Replaces Purple
-      accent: '#84CC16', // Slime Green (史萊姆綠)
-      bgGradient: 'from-[#1a0b00] via-[#2d1b0e] to-[#0f172a]', // Dark Orange to Black
+      secondary: '#1F2937', 
+      accent: '#84CC16', 
+      bgGradient: 'from-[#1a0b00] via-[#2d1b0e] to-[#0f172a]', 
       textMain: '#F3F4F6',
       textDark: '#111827',
-      cardBg: '#FFF7ED', // Very light orange tint
+      cardBg: '#FFF7ED', 
       cardBorder: '#EA580C',
       buttonText: '#FFFFFF',
       success: '#65A30D'
@@ -191,12 +191,12 @@ const THEMES = {
     id: 'sakura',
     name: '🌸 粉嫩櫻花',
     colors: {
-      primary: '#F472B6', // Soft Pink
+      primary: '#F472B6', 
       primaryHover: '#EC4899',
-      secondary: '#FBCFE8', // Light Pink
-      accent: '#FDF2F8', // Pinkish White
-      bgGradient: 'from-[#FDF2F8] via-[#FCE7F3] to-[#FBCFE8]', // Pink Gradient
-      textMain: '#831843', // Dark Pink/Maroon
+      secondary: '#FBCFE8', 
+      accent: '#FDF2F8', 
+      bgGradient: 'from-[#FDF2F8] via-[#FCE7F3] to-[#FBCFE8]', 
+      textMain: '#831843', 
       textDark: '#831843',
       cardBg: '#FFFFFF',
       cardBorder: '#F9A8D4',
@@ -212,12 +212,12 @@ const THEMES = {
     id: 'autumn',
     name: '🍂 金秋楓紅',
     colors: {
-      primary: '#B45309', // Amber/Rust
+      primary: '#B45309', 
       primaryHover: '#92400E',
-      secondary: '#78350F', // Dark Brown
-      accent: '#FEF3C7', // Pale Yellow
-      bgGradient: 'from-[#FFFBEB] via-[#FEF3C7] to-[#FDE68A]', // Warm Yellow Gradient
-      textMain: '#451A03', // Deep Brown
+      secondary: '#78350F', 
+      accent: '#FEF3C7', 
+      bgGradient: 'from-[#FFFBEB] via-[#FEF3C7] to-[#FDE68A]', 
+      textMain: '#451A03', 
       textDark: '#451A03',
       cardBg: '#FFFFFF',
       cardBorder: '#D97706',
@@ -233,10 +233,10 @@ const THEMES = {
     id: 'moon',
     name: '🏮 元宵/中秋',
     colors: {
-      primary: '#1E3A8A', // Deep Blue
+      primary: '#1E3A8A', 
       primaryHover: '#172554',
-      secondary: '#CA8A04', // Moon Gold
-      accent: '#FDBA74', // Soft Orange
+      secondary: '#CA8A04', 
+      accent: '#FDBA74', 
       bgGradient: 'from-[#0F172A] via-[#1E1B4B] to-[#312E81]',
       textMain: '#E0F2FE',
       textDark: '#172554',
@@ -254,10 +254,10 @@ const THEMES = {
     id: 'summer',
     name: '🛶 端午仲夏',
     colors: {
-      primary: '#0D9488', // Teal
+      primary: '#0D9488', 
       primaryHover: '#0F766E',
-      secondary: '#0284C7', // Ocean Blue
-      accent: '#FDE047', // Sun Yellow
+      secondary: '#0284C7', 
+      accent: '#FDE047', 
       bgGradient: 'from-[#ECFEFF] via-[#CFFAFE] to-[#A5F3FC]',
       textMain: '#164E63',
       textDark: '#083344',
@@ -446,12 +446,10 @@ const WinnersList = ({ theme }) => {
 
   useEffect(() => {
     if (!db) return;
-    // 使用客戶端過濾以避免建立索引的麻煩 (適合中小型應用)
-    const unsubscribe = onSnapshot(collection(db, "prizes"), (snapshot) => {
+    const unsubscribe = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'prizes'), (snapshot) => {
       const fetchedWinners = snapshot.docs
         .map((d) => ({ id: d.id, ...d.data() }))
-        .filter((p) => p.claimed === true && p.type !== 'loyalty_reward'); // 排除集點兌換，只顯示抽獎中獎
-      // 根據建立時間或名稱簡單排序
+        .filter((p) => p.claimed === true && p.type !== 'loyalty_reward'); 
       fetchedWinners.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
       setWinners(fetchedWinners);
     });
@@ -685,10 +683,10 @@ export default function App() {
   const [prevView, setPrevView] = useState("landing");
   const [loading, setLoading] = useState(true);
   const [configError, setConfigError] = useState(false);
-  const [authError, setAuthError] = useState(null); // 新增：用於顯示具體 Auth 錯誤
+  const [authError, setAuthError] = useState(null); 
   const [currentThemeId, setCurrentThemeId] = useState('christmas');
   const [isDemoMode, setIsDemoMode] = useState(false);
-  const [eventType, setEventType] = useState('both'); // 'loyalty', 'lottery', 'both', 'none'
+  const [eventType, setEventType] = useState('both'); 
 
   const theme = THEMES[currentThemeId] || THEMES.christmas;
 
@@ -702,7 +700,7 @@ export default function App() {
             setAuthError("連線逾時 (10s)。請檢查網路狀況或 API Key 設定。");
             setLoading(false);
         }
-    }, 10000); // 10 seconds timeout
+    }, 10000); 
 
     if (!auth) {
       setConfigError(true);
@@ -722,7 +720,6 @@ export default function App() {
       } catch (error) {
         console.error("Auth failed:", error);
         if (mounted) {
-            // 顯示具體的錯誤訊息，而不是切換到 Demo 模式
             setAuthError(error.message || "Authentication failed");
             setLoading(false);
         }
@@ -735,37 +732,38 @@ export default function App() {
           if (u) {
               setUser(u);
               setLoading(false);
-              setAuthError(null); // 成功連線，清除錯誤
+              setAuthError(null); 
               clearTimeout(timeoutId);
           }
       }
     });
 
-    // Listen to theme & event settings (only if not in demo mode)
-    let unsubSettings = () => {};
-    if (db) {
-        try {
-            const settingsRef = doc(db, "settings", "global");
-            unsubSettings = onSnapshot(settingsRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    if (data.activeTheme && mounted) setCurrentThemeId(data.activeTheme);
-                    if (data.eventType && mounted) setEventType(data.eventType);
-                }
-            }, (err) => {
-                console.error("Settings fetch error:", err);
-                // 這裡不阻擋主程式，僅記錄錯誤
-            });
-        } catch(e) { console.log("DB not ready"); }
-    }
-
     return () => { 
         mounted = false;
         clearTimeout(timeoutId);
         unsubscribe(); 
-        unsubSettings(); 
     };
   }, []);
+
+  // Separate useEffect for data fetching that depends on user
+  useEffect(() => {
+    let unsubSettings = () => {};
+    if (db && user && !isDemoMode) {
+        try {
+            const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global');
+            unsubSettings = onSnapshot(settingsRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.activeTheme) setCurrentThemeId(data.activeTheme);
+                    if (data.eventType) setEventType(data.eventType);
+                }
+            }, (err) => {
+                console.error("Settings fetch error:", err);
+            });
+        } catch(e) { console.log("DB error", e); }
+    }
+    return () => unsubSettings();
+  }, [user, isDemoMode]);
 
   const handleLogout = () => {
     setView("landing");
@@ -776,7 +774,6 @@ export default function App() {
 
   if (configError) return <ConfigErrorView />;
   
-  // 新增：顯示 Auth 錯誤的畫面
   if (authError) return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-red-50 text-red-900 p-6 text-center">
           <AlertTriangle className="w-12 h-12 text-red-600 mb-4" />
@@ -813,7 +810,6 @@ export default function App() {
       </div>
   );
   
-  // 如果還在載入中或沒有 User (且沒有 Error)，保持 Loading 或顯示空畫面
   if (!user && !isDemoMode) return <LoadingView />;
 
   return (
@@ -1050,7 +1046,7 @@ function CustomerLogin({ setView, setCurrentUserData, theme, isDemoMode }) {
   const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
-  const customersRef = collection(db, "customers");
+  const customersRef = collection(db, 'artifacts', appId, 'public', 'data', 'customers');
 
   const handleLogin = async (e) => {
     e.preventDefault(); setLoading(true); setMsg("");
@@ -1147,26 +1143,20 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
         return;
     }
 
-    const docRef = doc(db, "customers", userData.id);
+    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'customers', userData.id);
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) setData({ id: docSnap.id, ...docSnap.data() });
     });
     
-    const settingsRef = doc(db, "settings", "loyalty");
+    const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'loyalty');
     const unsubSettings = onSnapshot(settingsRef, (docSnap) => {
         if (docSnap.exists()) setLoyaltySettings(docSnap.data());
     });
 
-    const qPrizes = query(collection(db, "prizes"), where("winner.phone", "==", userData.id)); 
+    const qPrizes = query(collection(db, 'artifacts', appId, 'public', 'data', 'prizes'), where("winner.phone", "==", userData.id)); 
     const unsubPrizes = onSnapshot(qPrizes, (snapshot) => {
       const fetchedPrizes = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
       fetchedPrizes.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)); 
-      // We are fetching ALL prizes here to display history if needed, but filtering for active list
-      // For now, let's just show all active + history if needed. 
-      // The prompt says "keep unredeemed prizes", so we show unredeemed. 
-      // If we want to show history, we can remove the filter.
-      // But usually 'My Prizes' implies what I can use. 
-      // Let's stick to showing unredeemed ones prominently.
       setMyPrizes(fetchedPrizes); 
     });
     return () => { unsubscribe(); unsubPrizes(); unsubSettings(); };
@@ -1183,7 +1173,7 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
         return;
     }
     try {
-      await updateDoc(doc(db, "prizes", prizeId), { redeemed: true, redeemedAt: serverTimestamp() });
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'prizes', prizeId), { redeemed: true, redeemedAt: serverTimestamp() });
       setConfirmRedeemId(null);
     } catch (error) { console.error("Redeem failed:", error); alert("兌換失敗，請稍後再試"); }
   };
@@ -1204,8 +1194,8 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
       if (currentPoints < selectedMilestone) { alert("點數不足，無法兌換！"); return; }
       setIsProcessing(true);
       const prizeName = loyaltySettings[selectedMilestone] || theme.milestoneText;
-      const prizesRef = collection(db, "prizes");
-      const customerRef = doc(db, "customers", data.id);
+      const prizesRef = collection(db, 'artifacts', appId, 'public', 'data', 'prizes');
+      const customerRef = doc(db, 'artifacts', appId, 'public', 'data', 'customers', data.id);
       
       // 計算一年後的過期時間
       const expiresAt = new Date();
@@ -1430,7 +1420,7 @@ function StoreSettings({ theme, isDemoMode, setCurrentThemeId, setEventType, eve
     useEffect(() => {
         if (!isDemoMode) {
             const fetchSettings = async () => {
-                const docSnap = await getDoc(doc(db, "settings", "global"));
+                const docSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global'));
                 if (docSnap.exists()) {
                     if (docSnap.data().activeTheme) setActiveTheme(docSnap.data().activeTheme);
                 }
@@ -1446,7 +1436,7 @@ function StoreSettings({ theme, isDemoMode, setCurrentThemeId, setEventType, eve
                 setCurrentThemeId(themeId);
                 setActiveTheme(themeId);
             } else {
-                await setDoc(doc(db, "settings", "global"), { activeTheme: themeId }, { merge: true });
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global'), { activeTheme: themeId }, { merge: true });
                 setActiveTheme(themeId);
             }
             setMsg(`已切換至「${THEMES[themeId].name}」風格！`);
@@ -1460,7 +1450,7 @@ function StoreSettings({ theme, isDemoMode, setCurrentThemeId, setEventType, eve
             if (isDemoMode) {
                 setEventType(type);
             } else {
-                await setDoc(doc(db, "settings", "global"), { eventType: type }, { merge: true });
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global'), { eventType: type }, { merge: true });
                 setEventType(type);
             }
             setMsg(`活動模式已切換！`);
@@ -1549,7 +1539,7 @@ function LoyaltySettings({ theme, isDemoMode }) {
     useEffect(() => {
         if (!isDemoMode) {
             const fetchSettings = async () => {
-                const docRef = doc(db, "settings", "loyalty");
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'loyalty');
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
                     setRewards(docSnap.data());
@@ -1568,7 +1558,7 @@ function LoyaltySettings({ theme, isDemoMode }) {
             return;
         }
         try {
-            await setDoc(doc(db, "settings", "loyalty"), rewards);
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'loyalty'), rewards);
             setMsg("設定已儲存！");
             setTimeout(() => setMsg(""), 3000);
         } catch (err) {
@@ -1627,7 +1617,7 @@ function CheckInSystem({ theme, isDemoMode }) {
   
   const [currentCustomer, setCurrentCustomer] = useState(null);
   const [msg, setMsg] = useState({ type: "", text: "" });
-  const customersRef = collection(db, "customers");
+  const customersRef = collection(db, 'artifacts', appId, 'public', 'data', 'customers');
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -1712,11 +1702,32 @@ function CheckInSystem({ theme, isDemoMode }) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div><label className="block text-sm font-medium text-gray-600 mb-2 flex items-center gap-1"><Calendar className="w-4 h-4" /> 消費日期</label><input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full p-4 border rounded-xl outline-none text-gray-800 bg-white text-lg h-[60px]" style={{ borderColor: theme.colors.cardBorder }} /></div>
-          <div><label className="block text-sm font-medium text-gray-600 mb-2">消費金額</label><input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="$" className="w-full p-4 border rounded-xl text-2xl font-bold text-center outline-none h-[60px] text-gray-800" style={{ borderColor: theme.colors.cardBorder }} inputMode="numeric" /></div>
+          <div>
+              <label className="block text-sm font-medium text-gray-600 mb-2">消費金額</label>
+              <input 
+                  type="number" 
+                  value={amount} 
+                  onChange={(e) => setAmount(e.target.value)} 
+                  onWheel={(e) => e.target.blur()} 
+                  placeholder="$" 
+                  className="w-full p-4 border rounded-xl text-2xl font-bold text-center outline-none h-[60px] text-gray-800" 
+                  style={{ borderColor: theme.colors.cardBorder }} 
+                  inputMode="numeric" 
+              />
+          </div>
         </div>
         <div>
            <label className="block text-sm font-medium text-gray-600 mb-2 flex items-center gap-1"><Utensils className="w-4 h-4" /> 便當數量 (集點用)</label>
-           <input type="number" value={bentoQty} onChange={(e) => setBentoQty(e.target.value)} placeholder="0" className="w-full p-4 border rounded-xl text-xl font-bold text-center outline-none h-[60px] text-gray-800" style={{ borderColor: theme.colors.cardBorder }} inputMode="numeric" />
+           <input 
+               type="number" 
+               value={bentoQty} 
+               onChange={(e) => setBentoQty(e.target.value)} 
+               onWheel={(e) => e.target.blur()} 
+               placeholder="0" 
+               className="w-full p-4 border rounded-xl text-xl font-bold text-center outline-none h-[60px] text-gray-800" 
+               style={{ borderColor: theme.colors.cardBorder }} 
+               inputMode="numeric" 
+           />
         </div>
 
         <button className="w-full text-white font-bold py-5 rounded-2xl shadow-lg active:shadow-none active:translate-y-1 transition-all text-xl flex items-center justify-center gap-2" style={{ backgroundColor: theme.colors.primary }}><Save className="w-6 h-6" /> {currentCustomer ? "確認累積" : "建立並累積"}</button>
@@ -1728,7 +1739,7 @@ function CheckInSystem({ theme, isDemoMode }) {
 function CustomerList({ theme, isDemoMode }) {
   const [customers, setCustomers] = useState([]);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
-  const customersRef = collection(db, "customers");
+  const customersRef = collection(db, 'artifacts', appId, 'public', 'data', 'customers');
   
   useEffect(() => { 
       if (isDemoMode) {
@@ -1786,8 +1797,8 @@ function LotterySystem({ theme, isDemoMode }) {
   const [isAdding, setIsAdding] = useState(false);
   const [availableTicketCount, setAvailableTicketCount] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
-  const customersRef = collection(db, "customers");
-  const prizesRef = collection(db, "prizes");
+  const customersRef = collection(db, 'artifacts', appId, 'public', 'data', 'customers');
+  const prizesRef = collection(db, 'artifacts', appId, 'public', 'data', 'prizes');
 
   useEffect(() => {
     if (isDemoMode) {
@@ -1907,8 +1918,8 @@ function DataBackupSystem({ theme, isDemoMode }) {
   const [pendingFile, setPendingFile] = useState(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetPin, setResetPin] = useState("");
-  const customersRef = collection(db, "customers");
-  const prizesRef = collection(db, "prizes");
+  const customersRef = collection(db, 'artifacts', appId, 'public', 'data', 'customers');
+  const prizesRef = collection(db, 'artifacts', appId, 'public', 'data', 'prizes');
 
   const handleDownload = async () => {
     setProcessing(true); setStatus("準備資料中...");
