@@ -99,7 +99,6 @@ const ADMIN_PIN = "1225";
 const LINE_ID = "@171kndrh";
 const LOGO_URL = "https://i.ibb.co/GvSs1BtJ/1765508995830.png";
 const MENU_URL = "https://i.ibb.co/Rk0Ccjqn/image.jpg";
-const appId = typeof window.__app_id !== 'undefined' ? window.__app_id : 'default-app-id';
 
 // --- Theme System Configuration ---
 const THEMES = {
@@ -446,7 +445,8 @@ const WinnersList = ({ theme }) => {
 
   useEffect(() => {
     if (!db) return;
-    const unsubscribe = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'prizes'), (snapshot) => {
+    // Restore: Original path
+    const unsubscribe = onSnapshot(collection(db, "prizes"), (snapshot) => {
       const fetchedWinners = snapshot.docs
         .map((d) => ({ id: d.id, ...d.data() }))
         .filter((p) => p.claimed === true && p.type !== 'loyalty_reward'); 
@@ -750,7 +750,8 @@ export default function App() {
     let unsubSettings = () => {};
     if (db && user && !isDemoMode) {
         try {
-            const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global');
+            // Restore: Original path
+            const settingsRef = doc(db, "settings", "global");
             unsubSettings = onSnapshot(settingsRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
@@ -1046,7 +1047,8 @@ function CustomerLogin({ setView, setCurrentUserData, theme, isDemoMode }) {
   const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
-  const customersRef = collection(db, 'artifacts', appId, 'public', 'data', 'customers');
+  // Restore: Original path
+  const customersRef = collection(db, "customers");
 
   const handleLogin = async (e) => {
     e.preventDefault(); setLoading(true); setMsg("");
@@ -1143,17 +1145,20 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
         return;
     }
 
-    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'customers', userData.id);
+    // Restore: Original path
+    const docRef = doc(db, "customers", userData.id);
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) setData({ id: docSnap.id, ...docSnap.data() });
     });
     
-    const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'loyalty');
+    // Restore: Original path
+    const settingsRef = doc(db, "settings", "loyalty");
     const unsubSettings = onSnapshot(settingsRef, (docSnap) => {
         if (docSnap.exists()) setLoyaltySettings(docSnap.data());
     });
 
-    const qPrizes = query(collection(db, 'artifacts', appId, 'public', 'data', 'prizes'), where("winner.phone", "==", userData.id)); 
+    // Restore: Original path
+    const qPrizes = query(collection(db, "prizes"), where("winner.phone", "==", userData.id)); 
     const unsubPrizes = onSnapshot(qPrizes, (snapshot) => {
       const fetchedPrizes = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
       fetchedPrizes.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)); 
@@ -1173,7 +1178,8 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
         return;
     }
     try {
-      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'prizes', prizeId), { redeemed: true, redeemedAt: serverTimestamp() });
+      // Restore: Original path
+      await updateDoc(doc(db, "prizes", prizeId), { redeemed: true, redeemedAt: serverTimestamp() });
       setConfirmRedeemId(null);
     } catch (error) { console.error("Redeem failed:", error); alert("兌換失敗，請稍後再試"); }
   };
@@ -1194,8 +1200,9 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
       if (currentPoints < selectedMilestone) { alert("點數不足，無法兌換！"); return; }
       setIsProcessing(true);
       const prizeName = loyaltySettings[selectedMilestone] || theme.milestoneText;
-      const prizesRef = collection(db, 'artifacts', appId, 'public', 'data', 'prizes');
-      const customerRef = doc(db, 'artifacts', appId, 'public', 'data', 'customers', data.id);
+      // Restore: Original path
+      const prizesRef = collection(db, "prizes");
+      const customerRef = doc(db, "customers", data.id);
       
       // 計算一年後的過期時間
       const expiresAt = new Date();
@@ -1420,7 +1427,8 @@ function StoreSettings({ theme, isDemoMode, setCurrentThemeId, setEventType, eve
     useEffect(() => {
         if (!isDemoMode) {
             const fetchSettings = async () => {
-                const docSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global'));
+                // Restore: Original path
+                const docSnap = await getDoc(doc(db, "settings", "global"));
                 if (docSnap.exists()) {
                     if (docSnap.data().activeTheme) setActiveTheme(docSnap.data().activeTheme);
                 }
@@ -1436,7 +1444,8 @@ function StoreSettings({ theme, isDemoMode, setCurrentThemeId, setEventType, eve
                 setCurrentThemeId(themeId);
                 setActiveTheme(themeId);
             } else {
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global'), { activeTheme: themeId }, { merge: true });
+                // Restore: Original path
+                await setDoc(doc(db, "settings", "global"), { activeTheme: themeId }, { merge: true });
                 setActiveTheme(themeId);
             }
             setMsg(`已切換至「${THEMES[themeId].name}」風格！`);
@@ -1450,7 +1459,8 @@ function StoreSettings({ theme, isDemoMode, setCurrentThemeId, setEventType, eve
             if (isDemoMode) {
                 setEventType(type);
             } else {
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'global'), { eventType: type }, { merge: true });
+                // Restore: Original path
+                await setDoc(doc(db, "settings", "global"), { eventType: type }, { merge: true });
                 setEventType(type);
             }
             setMsg(`活動模式已切換！`);
@@ -1539,7 +1549,8 @@ function LoyaltySettings({ theme, isDemoMode }) {
     useEffect(() => {
         if (!isDemoMode) {
             const fetchSettings = async () => {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'loyalty');
+                // Restore: Original path
+                const docRef = doc(db, "settings", "loyalty");
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
                     setRewards(docSnap.data());
@@ -1558,7 +1569,8 @@ function LoyaltySettings({ theme, isDemoMode }) {
             return;
         }
         try {
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'loyalty'), rewards);
+            // Restore: Original path
+            await setDoc(doc(db, "settings", "loyalty"), rewards);
             setMsg("設定已儲存！");
             setTimeout(() => setMsg(""), 3000);
         } catch (err) {
@@ -1617,7 +1629,8 @@ function CheckInSystem({ theme, isDemoMode }) {
   
   const [currentCustomer, setCurrentCustomer] = useState(null);
   const [msg, setMsg] = useState({ type: "", text: "" });
-  const customersRef = collection(db, 'artifacts', appId, 'public', 'data', 'customers');
+  // Restore: Original path
+  const customersRef = collection(db, "customers");
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -1739,7 +1752,8 @@ function CheckInSystem({ theme, isDemoMode }) {
 function CustomerList({ theme, isDemoMode }) {
   const [customers, setCustomers] = useState([]);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
-  const customersRef = collection(db, 'artifacts', appId, 'public', 'data', 'customers');
+  // Restore: Original path
+  const customersRef = collection(db, "customers");
   
   useEffect(() => { 
       if (isDemoMode) {
@@ -1797,8 +1811,9 @@ function LotterySystem({ theme, isDemoMode }) {
   const [isAdding, setIsAdding] = useState(false);
   const [availableTicketCount, setAvailableTicketCount] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
-  const customersRef = collection(db, 'artifacts', appId, 'public', 'data', 'customers');
-  const prizesRef = collection(db, 'artifacts', appId, 'public', 'data', 'prizes');
+  // Restore: Original path
+  const customersRef = collection(db, "customers");
+  const prizesRef = collection(db, "prizes");
 
   useEffect(() => {
     if (isDemoMode) {
@@ -1918,8 +1933,9 @@ function DataBackupSystem({ theme, isDemoMode }) {
   const [pendingFile, setPendingFile] = useState(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetPin, setResetPin] = useState("");
-  const customersRef = collection(db, 'artifacts', appId, 'public', 'data', 'customers');
-  const prizesRef = collection(db, 'artifacts', appId, 'public', 'data', 'prizes');
+  // Restore: Original path
+  const customersRef = collection(db, "customers");
+  const prizesRef = collection(db, "prizes");
 
   const handleDownload = async () => {
     setProcessing(true); setStatus("準備資料中...");
