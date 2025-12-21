@@ -169,7 +169,7 @@ const THEMES = {
     title: '集點活動',
     milestoneText: '專屬好禮',
     // 一般 (Daily)
-    logo: 'https://i.ibb.co/Gf394WJH/IMG-20250807-144350.jpg'
+    logo: 'https://i.ibb.co/Zz2cFMkT/1766320100151.png'
   },
   halloween: {
     id: 'halloween',
