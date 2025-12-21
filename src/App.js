@@ -17,8 +17,8 @@ import {
   getDocs,
   increment,
   where,
-  arrayUnion, 
-  Timestamp, 
+  arrayUnion,
+  Timestamp,
 } from "firebase/firestore";
 import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "firebase/auth";
 import {
@@ -97,7 +97,7 @@ try {
 // --- Global Constants ---
 const ADMIN_PIN = "1225";
 const LINE_ID = "@171kndrh";
-const LOGO_URL = "https://i.ibb.co/GvSs1BtJ/1765508995830.png";
+// LOGO_URL 已移除，改為隨主題變更
 const MENU_URL = "https://i.ibb.co/Rk0Ccjqn/image.jpg";
 
 // --- Theme System Configuration ---
@@ -121,7 +121,9 @@ const THEMES = {
     icon: Gift,
     particleType: 'snow',
     title: '聖誕活動',
-    milestoneText: '聖誕禮物'
+    milestoneText: '聖誕禮物',
+    // 使用原本的聖誕 Logo
+    logo: 'https://i.ibb.co/GvSs1BtJ/1765508995830.png'
   },
   cny: {
     id: 'cny',
@@ -142,7 +144,9 @@ const THEMES = {
     icon: PartyPopper,
     particleType: 'coin',
     title: '新春活動',
-    milestoneText: '新春紅包'
+    milestoneText: '新春紅包',
+    // 新年
+    logo: 'https://ibb.co/Ng7Kqw87'
   },
   daily: {
     id: 'daily',
@@ -163,7 +167,9 @@ const THEMES = {
     icon: Utensils,
     particleType: 'none',
     title: '集點活動',
-    milestoneText: '專屬好禮'
+    milestoneText: '專屬好禮',
+    // 一般 (Daily)
+    logo: 'https://ibb.co/7JTt0zgQ'
   },
   halloween: {
     id: 'halloween',
@@ -184,7 +190,9 @@ const THEMES = {
     icon: Ghost,
     particleType: 'ghost',
     title: '萬聖節活動',
-    milestoneText: '搗蛋好禮'
+    milestoneText: '搗蛋好禮',
+    // 萬聖
+    logo: 'https://ibb.co/qq2yDCY'
   },
   sakura: {
     id: 'sakura',
@@ -205,7 +213,9 @@ const THEMES = {
     icon: Flower2,
     particleType: 'sakura',
     title: '春日祭典',
-    milestoneText: '櫻花好禮'
+    milestoneText: '櫻花好禮',
+    // 春櫻
+    logo: 'https://ibb.co/3YCv8H9B'
   },
   autumn: {
     id: 'autumn',
@@ -226,7 +236,9 @@ const THEMES = {
     icon: Leaf,
     particleType: 'leaf',
     title: '秋收感恩',
-    milestoneText: '豐收好禮'
+    milestoneText: '豐收好禮',
+    // 秋楓
+    logo: 'https://ibb.co/PsrHmtM6'
   },
   moon: {
     id: 'moon',
@@ -247,7 +259,9 @@ const THEMES = {
     icon: Moon,
     particleType: 'star',
     title: '佳節活動',
-    milestoneText: '團圓好禮'
+    milestoneText: '團圓好禮',
+    // 中秋 (也可切換為 元宵: https://ibb.co/Q79p064m)
+    logo: 'https://ibb.co/n8qwzFV7'
   },
   summer: {
     id: 'summer',
@@ -268,7 +282,9 @@ const THEMES = {
     icon: Sun,
     particleType: 'bubble',
     title: '仲夏活動',
-    milestoneText: '清涼好禮'
+    milestoneText: '清涼好禮',
+    // 端午 (也可切換為 夏天: https://ibb.co/R4z1bfjW)
+    logo: 'https://ibb.co/fVrxSnfm'
   }
 };
 
@@ -357,7 +373,8 @@ const EasterEggModal = ({ onClose, theme }) => {
         </button>
         <div className="mb-4 flex justify-center">
             <div className="bg-white p-4 rounded-full shadow-lg animate-bounce">
-                <img src={LOGO_URL} alt="Logo" className="w-16 h-16 object-contain" />
+                {/* 使用主題 Logo */}
+                <img src={theme.logo} alt="Logo" className="w-16 h-16 object-contain" />
             </div>
         </div>
         <h2 className="text-3xl font-bold mb-2 drop-shadow-md" style={{ color: theme.colors.accent }}>Surprise!</h2>
@@ -394,7 +411,7 @@ const RedeemModal = ({ isOpen, onClose, onConfirm, prizeName, milestone, isProce
         
         <div className="text-center">
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border-2"
-                style={{ backgroundColor: `${theme.colors.cardBg}`, borderColor: theme.colors.accent }}>
+               style={{ backgroundColor: `${theme.colors.cardBg}`, borderColor: theme.colors.accent }}>
             <Gift className="w-8 h-8" style={{ color: theme.colors.primary }} />
           </div>
           
@@ -406,7 +423,7 @@ const RedeemModal = ({ isOpen, onClose, onConfirm, prizeName, milestone, isProce
             <span className="font-bold text-lg mt-2 block" style={{ color: theme.colors.secondary }}>{prizeName}</span>
             {Number(milestone) === 20 && (
                 <span className="block text-xs text-red-500 mt-2 bg-red-50 p-2 rounded">
-                    (注意：兌換 20 點大獎後，將扣除 20 點並開啟新的一輪集點！)
+                  (注意：兌換 20 點大獎後，將扣除 20 點並開啟新的一輪集點！)
                 </span>
             )}
           </p>
@@ -445,7 +462,6 @@ const WinnersList = ({ theme }) => {
 
   useEffect(() => {
     if (!db) return;
-    // Restore: Original path
     const unsubscribe = onSnapshot(collection(db, "prizes"), (snapshot) => {
       const fetchedWinners = snapshot.docs
         .map((d) => ({ id: d.id, ...d.data() }))
@@ -750,7 +766,6 @@ export default function App() {
     let unsubSettings = () => {};
     if (db && user && !isDemoMode) {
         try {
-            // Restore: Original path
             const settingsRef = doc(db, "settings", "global");
             unsubSettings = onSnapshot(settingsRef, (docSnap) => {
                 if (docSnap.exists()) {
@@ -930,7 +945,8 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both' }) {
       <div onClick={handleLogoClick} className="p-[6px] rounded-full shadow-2xl w-40 h-40 md:w-56 md:h-56 flex items-center justify-center overflow-hidden mb-2 relative z-10 cursor-pointer active:scale-95 transition-transform"
            style={{ background: `linear-gradient(to right, ${theme.colors.primary}, ${theme.colors.secondary})` }}>
         <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-white">
-          <img src={LOGO_URL} alt="Store Logo" className="w-full h-full object-cover scale-150" onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }} />
+          {/* Logo 隨主題變更 */}
+          <img src={theme.logo} alt="Store Logo" className="w-full h-full object-cover scale-150" onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }} />
           <div className="hidden w-full h-full flex-col items-center justify-center text-gray-300 bg-gray-50"><Store className="w-12 h-12 mb-1" /><span className="text-xs">Logo</span></div>
         </div>
         <div className="absolute -top-1 -right-1 transform rotate-12"><theme.icon className="w-12 h-12 md:w-16 md:h-16 drop-shadow-md" style={{ color: theme.colors.primary }} /></div>
@@ -1047,7 +1063,7 @@ function CustomerLogin({ setView, setCurrentUserData, theme, isDemoMode }) {
   const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
-  // Restore: Original path
+  
   const customersRef = collection(db, "customers");
 
   const handleLogin = async (e) => {
@@ -1145,19 +1161,19 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
         return;
     }
 
-    // Restore: Original path
+    
     const docRef = doc(db, "customers", userData.id);
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) setData({ id: docSnap.id, ...docSnap.data() });
     });
     
-    // Restore: Original path
+    
     const settingsRef = doc(db, "settings", "loyalty");
     const unsubSettings = onSnapshot(settingsRef, (docSnap) => {
         if (docSnap.exists()) setLoyaltySettings(docSnap.data());
     });
 
-    // Restore: Original path
+    
     const qPrizes = query(collection(db, "prizes"), where("winner.phone", "==", userData.id)); 
     const unsubPrizes = onSnapshot(qPrizes, (snapshot) => {
       const fetchedPrizes = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -1178,7 +1194,7 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
         return;
     }
     try {
-      // Restore: Original path
+      
       await updateDoc(doc(db, "prizes", prizeId), { redeemed: true, redeemedAt: serverTimestamp() });
       setConfirmRedeemId(null);
     } catch (error) { console.error("Redeem failed:", error); alert("兌換失敗，請稍後再試"); }
@@ -1200,7 +1216,7 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
       if (currentPoints < selectedMilestone) { alert("點數不足，無法兌換！"); return; }
       setIsProcessing(true);
       const prizeName = loyaltySettings[selectedMilestone] || theme.milestoneText;
-      // Restore: Original path
+      
       const prizesRef = collection(db, "prizes");
       const customerRef = doc(db, "customers", data.id);
       
@@ -1427,7 +1443,7 @@ function StoreSettings({ theme, isDemoMode, setCurrentThemeId, setEventType, eve
     useEffect(() => {
         if (!isDemoMode) {
             const fetchSettings = async () => {
-                // Restore: Original path
+                
                 const docSnap = await getDoc(doc(db, "settings", "global"));
                 if (docSnap.exists()) {
                     if (docSnap.data().activeTheme) setActiveTheme(docSnap.data().activeTheme);
@@ -1444,7 +1460,7 @@ function StoreSettings({ theme, isDemoMode, setCurrentThemeId, setEventType, eve
                 setCurrentThemeId(themeId);
                 setActiveTheme(themeId);
             } else {
-                // Restore: Original path
+                
                 await setDoc(doc(db, "settings", "global"), { activeTheme: themeId }, { merge: true });
                 setActiveTheme(themeId);
             }
@@ -1459,7 +1475,7 @@ function StoreSettings({ theme, isDemoMode, setCurrentThemeId, setEventType, eve
             if (isDemoMode) {
                 setEventType(type);
             } else {
-                // Restore: Original path
+                
                 await setDoc(doc(db, "settings", "global"), { eventType: type }, { merge: true });
                 setEventType(type);
             }
@@ -1549,7 +1565,7 @@ function LoyaltySettings({ theme, isDemoMode }) {
     useEffect(() => {
         if (!isDemoMode) {
             const fetchSettings = async () => {
-                // Restore: Original path
+                
                 const docRef = doc(db, "settings", "loyalty");
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
@@ -1569,7 +1585,7 @@ function LoyaltySettings({ theme, isDemoMode }) {
             return;
         }
         try {
-            // Restore: Original path
+            
             await setDoc(doc(db, "settings", "loyalty"), rewards);
             setMsg("設定已儲存！");
             setTimeout(() => setMsg(""), 3000);
@@ -1629,7 +1645,7 @@ function CheckInSystem({ theme, isDemoMode }) {
   
   const [currentCustomer, setCurrentCustomer] = useState(null);
   const [msg, setMsg] = useState({ type: "", text: "" });
-  // Restore: Original path
+  
   const customersRef = collection(db, "customers");
 
   const handleSearch = async (e) => {
@@ -1752,7 +1768,7 @@ function CheckInSystem({ theme, isDemoMode }) {
 function CustomerList({ theme, isDemoMode }) {
   const [customers, setCustomers] = useState([]);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
-  // Restore: Original path
+  
   const customersRef = collection(db, "customers");
   
   useEffect(() => { 
@@ -1811,7 +1827,7 @@ function LotterySystem({ theme, isDemoMode }) {
   const [isAdding, setIsAdding] = useState(false);
   const [availableTicketCount, setAvailableTicketCount] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
-  // Restore: Original path
+  
   const customersRef = collection(db, "customers");
   const prizesRef = collection(db, "prizes");
 
@@ -1829,7 +1845,8 @@ function LotterySystem({ theme, isDemoMode }) {
       allCustomers.forEach((c) => {
         const earned = Math.floor((c.totalSpent || 0) / 300);
         const used = c.usedTicketCount || 0;
-        count += Math.max(0, earned - used);
+        const available = Math.max(0, earned - used);
+        count += Math.max(0, available);
       });
       setAvailableTicketCount(count);
     });
@@ -1933,7 +1950,7 @@ function DataBackupSystem({ theme, isDemoMode }) {
   const [pendingFile, setPendingFile] = useState(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetPin, setResetPin] = useState("");
-  // Restore: Original path
+  
   const customersRef = collection(db, "customers");
   const prizesRef = collection(db, "prizes");
 
