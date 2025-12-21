@@ -146,7 +146,7 @@ const THEMES = {
     title: '新春活動',
     milestoneText: '新春紅包',
     // 新年
-    logo: 'https://ibb.co/Ng7Kqw87'
+    logo: 'https://i.ibb.co/35kcbtDk/1766105776647.png'
   },
   daily: {
     id: 'daily',
@@ -169,7 +169,7 @@ const THEMES = {
     title: '集點活動',
     milestoneText: '專屬好禮',
     // 一般 (Daily)
-    logo: 'https://ibb.co/7JTt0zgQ'
+    logo: 'https://i.ibb.co/DD6fjbGY/IMG-20250808-103443.jpg'
   },
   halloween: {
     id: 'halloween',
@@ -192,7 +192,7 @@ const THEMES = {
     title: '萬聖節活動',
     milestoneText: '搗蛋好禮',
     // 萬聖
-    logo: 'https://ibb.co/qq2yDCY'
+    logo: 'https://i.ibb.co/f6T1X9d/1766102862428.png'
   },
   sakura: {
     id: 'sakura',
@@ -215,7 +215,7 @@ const THEMES = {
     title: '春日祭典',
     milestoneText: '櫻花好禮',
     // 春櫻
-    logo: 'https://ibb.co/3YCv8H9B'
+    logo: 'https://i.ibb.co/Z1MSwCpW/1766102771173.png'
   },
   autumn: {
     id: 'autumn',
@@ -238,7 +238,7 @@ const THEMES = {
     title: '秋收感恩',
     milestoneText: '豐收好禮',
     // 秋楓
-    logo: 'https://ibb.co/PsrHmtM6'
+    logo: 'https://i.ibb.co/kVGCHMJS/1766103839305.png'
   },
   moon: {
     id: 'moon',
@@ -260,8 +260,8 @@ const THEMES = {
     particleType: 'star',
     title: '佳節活動',
     milestoneText: '團圓好禮',
-    // 中秋 (也可切換為 元宵: https://ibb.co/Q79p064m)
-    logo: 'https://ibb.co/n8qwzFV7'
+    // 中秋 (也可切換為 元宵: https://i.ibb.co/j9hbtLS4/1766223796114.png)
+    logo: 'https://i.ibb.co/dJsfGR3P/IMG-20251219-081938.jpg'
   },
   summer: {
     id: 'summer',
@@ -283,8 +283,8 @@ const THEMES = {
     particleType: 'bubble',
     title: '仲夏活動',
     milestoneText: '清涼好禮',
-    // 端午 (也可切換為 夏天: https://ibb.co/R4z1bfjW)
-    logo: 'https://ibb.co/fVrxSnfm'
+    // 端午 (也可切換為 夏天: https://i.ibb.co/PzwRjKD8/1766292522307.png)
+    logo: 'https://i.ibb.co/XfFC431m/1766103300724.png'
   }
 };
 
