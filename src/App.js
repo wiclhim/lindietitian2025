@@ -1904,51 +1904,99 @@ function LotterySystem({ theme, isDemoMode }) {
     }; animate();
   };
 
-  // 新增：處理指定中獎邏輯
+  // 修改：處理指定中獎邏輯 (加入動畫與扣票)
   const handleDesignateWinner = async () => {
       if (!targetPhone || !targetPrizeId) return showMsg("請輸入電話並選擇獎品");
       
-      // 1. 檢查顧客是否存在 (或在 Demo 模式下模擬)
+      // 1. 取得顧客資料
       let customerData = null;
       if (isDemoMode) {
-          customerData = { name: "VIP測試", phone: targetPhone };
+          customerData = { id: targetPhone, name: "VIP測試", phone: targetPhone, totalSpent: 3000, usedTicketCount: 2 };
       } else {
           const docRef = doc(customersRef, targetPhone);
           const docSnap = await getDoc(docRef);
           if (!docSnap.exists()) return showMsg("找不到此顧客，請先建立資料");
-          customerData = docSnap.data();
+          customerData = { id: docSnap.id, ...docSnap.data() };
       }
 
-      // 2. 執行指定中獎
-      const expiresAt = new Date();
-      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+      // 2. 檢查票券是否足夠 (黑箱也要守規矩)
+      const earned = Math.floor((customerData.totalSpent || 0) / 300);
+      const used = customerData.usedTicketCount || 0;
+      if (earned - used <= 0) return showMsg("該顧客沒有可用的抽獎券！無法指定。");
+
+      // 3. 準備動畫用的假名單 (增加真實感)
+      let pool = [];
+      customers.forEach((c) => {
+          // 簡單塞入一些名字讓動畫跑
+          pool.push({ name: c.name || "顧客", phone: c.phone, currentTicketId: "..." });
+      });
+      if (pool.length < 5) pool = [...pool, ...pool, { name: "VIP", phone: targetPhone }]; // 補齊數量
+
+      // 4. 開始動畫
+      setIsDrawing(true);
+      setWinner(null);
+      
+      const duration = 3000;
+      const startTime = Date.now();
+      
+      const animate = () => {
+          if (Date.now() - startTime < duration) {
+              setWinner(pool[Math.floor(Math.random() * pool.length)]); // 隨機跳動
+              requestAnimationFrame(animate);
+          } else {
+              // 5. 動畫結束，執行指定中獎
+              finishDesignation(customerData);
+          }
+      };
+      animate();
+  };
+
+  const finishDesignation = async (customerData) => {
+      const nextTicketNum = (customerData.usedTicketCount || 0) + 1;
+      const realTicketId = `${customerData.phone}-${String(nextTicketNum).padStart(2, "0")}`;
       
       const winnerInfo = {
           name: customerData.name || "VIP貴賓",
-          phone: targetPhone,
-          ticketId: `MANUAL-VIP-${Date.now().toString().slice(-6)}` // 使用特殊票號標記手動指定
+          phone: customerData.phone,
+          ticketId: realTicketId // 使用真實計算的票號
       };
+
+      const expiresAt = new Date();
+      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+
+      // 設定最終顯示的 winner (確保動畫最後一幀是指定的人)
+      setWinner({...winnerInfo, currentTicketId: realTicketId}); 
 
       if (isDemoMode) {
           setPrizes(prev => prev.map(p => p.id === targetPrizeId ? { ...p, claimed: true, winner: winnerInfo, expiresAt: expiresAt } : p));
-          showMsg(`Demo: 已指定 ${targetPhone} 獲得獎品`);
+          showMsg(`Demo: 已指定 ${customerData.phone} 獲獎 (模擬扣票: ${realTicketId})`);
       } else {
           try {
-              // 注意：手動指定通常不扣除票券(因為可能是額外贈禮)，故不更新 usedTicketCount
-              // 若需要扣除，可在此加入 updateDoc(doc(customersRef, targetPhone), { usedTicketCount: increment(1) });
-              await updateDoc(doc(prizesRef, targetPrizeId), {
+              const batch = writeBatch(db);
+              
+              // 更新獎品狀態
+              const prizeRef = doc(prizesRef, targetPrizeId);
+              batch.update(prizeRef, {
                   claimed: true,
                   redeemed: false,
                   winner: winnerInfo,
                   expiresAt: expiresAt
               });
-              showMsg(`成功指定！`);
+              
+              // 確實扣除顧客票券
+              const customerRef = doc(customersRef, customerData.id);
+              batch.update(customerRef, {
+                  usedTicketCount: increment(1)
+              });
+              
+              await batch.commit();
           } catch (err) {
               console.error(err);
               showMsg("指定失敗");
           }
       }
-      // 重置欄位
+      
+      setIsDrawing(false); // 結束動畫狀態
       setTargetPhone("");
       setTargetPrizeId("");
   };
@@ -2005,13 +2053,14 @@ function LotterySystem({ theme, isDemoMode }) {
              </div>
              <button 
                 onClick={handleDesignateWinner}
-                className="w-full md:w-auto bg-gray-800 text-white px-6 py-3 rounded-xl h-[54px] font-bold active:scale-95 transition-transform whitespace-nowrap"
+                disabled={isDrawing}
+                className="w-full md:w-auto bg-gray-800 text-white px-6 py-3 rounded-xl h-[54px] font-bold active:scale-95 transition-transform whitespace-nowrap disabled:opacity-50"
              >
-                確認指定
+                {isDrawing ? "抽獎中..." : "確認指定"}
              </button>
         </div>
         <p className="text-xs text-gray-500 mt-2 px-1">
-            * 此功能將直接指定中獎者，不需扣除抽獎券，亦不需進行隨機抽獎。請謹慎使用。
+            * 此功能將執行模擬抽獎動畫，並<strong className="text-red-600">確實扣除</strong>該顧客一張抽獎券，紀錄完全合法。
         </p>
       </div>
 
