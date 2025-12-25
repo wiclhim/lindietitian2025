@@ -19,7 +19,7 @@ import {
   where,
   arrayUnion,
   Timestamp,
-  deleteField, // 新增 deleteField 用於開獎後清除指定標記
+  deleteField,
 } from "firebase/firestore";
 import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "firebase/auth";
 import {
@@ -67,7 +67,7 @@ import {
   Layers,
   Coffee,
   Trophy,
-  UserCheck // Added for the designate feature
+  UserCheck
 } from "lucide-react";
 
 // --- Firebase Initialization ---
@@ -99,7 +99,6 @@ try {
 // --- Global Constants ---
 const ADMIN_PIN = "1225";
 const LINE_ID = "@171kndrh";
-// LOGO_URL 已移除，改為隨主題變更
 const MENU_URL = "https://i.ibb.co/Rk0Ccjqn/image.jpg";
 
 // --- Theme System Configuration ---
@@ -367,7 +366,6 @@ const EasterEggModal = ({ onClose, theme }) => {
         </button>
         <div className="mb-4 flex justify-center">
             <div className="bg-white p-4 rounded-full shadow-lg animate-bounce">
-                {/* 使用主題 Logo */}
                 <img src={theme.logo} alt="Logo" className="w-16 h-16 object-contain" />
             </div>
         </div>
@@ -510,7 +508,6 @@ const LoyaltyPromoCard = ({ theme }) => {
             </h3>
             
             <div className="flex justify-between items-center px-2 mb-4 relative">
-                {/* Connecting Line */}
                 <div className="absolute top-1/2 left-4 right-4 h-1 bg-gray-200 -z-10 transform -translate-y-1/2"></div>
                 
                 <div className="flex flex-col items-center gap-1 bg-white p-2 rounded-lg">
@@ -596,7 +593,6 @@ const PrizeShowcase = ({ theme }) => {
     );
 };
 
-// --- Updated Component: Loyalty Card ---
 const LoyaltyCard = ({ points = 0, redeemedMilestones = [], onRedeemClick, theme, settings }) => {
   const maxPoints = 20;
   const milestones = [10, 15, 20];
@@ -685,7 +681,6 @@ const LoyaltyCard = ({ points = 0, redeemedMilestones = [], onRedeemClick, theme
   );
 };
 
-// --- Main Application Component ---
 export default function App() {
   const [user, setUser] = useState(null);
   const [view, setView] = useState("landing");
@@ -702,8 +697,6 @@ export default function App() {
 
   useEffect(() => {
     let mounted = true;
-    
-    // Safety Timeout: Force error if connection hangs > 10s
     const timeoutId = setTimeout(() => {
         if (loading && mounted) {
             console.warn("Auth connection timed out");
@@ -755,7 +748,6 @@ export default function App() {
     };
   }, []);
 
-  // Separate useEffect for data fetching that depends on user
   useEffect(() => {
     let unsubSettings = () => {};
     if (db && user && !isDemoMode) {
@@ -847,8 +839,6 @@ export default function App() {
   );
 }
 
-// --- Sub-Views ---
-
 function ConfigErrorView() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 text-gray-800 p-4 text-center">
@@ -939,7 +929,6 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both' }) {
       <div onClick={handleLogoClick} className="p-[6px] rounded-full shadow-2xl w-40 h-40 md:w-56 md:h-56 flex items-center justify-center overflow-hidden mb-2 relative z-10 cursor-pointer active:scale-95 transition-transform"
            style={{ background: `linear-gradient(to right, ${theme.colors.primary}, ${theme.colors.secondary})` }}>
         <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-white">
-          {/* Logo 隨主題變更 */}
           <img src={theme.logo} alt="Store Logo" className="w-full h-full object-cover scale-150" onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }} />
           <div className="hidden w-full h-full flex-col items-center justify-center text-gray-300 bg-gray-50"><Store className="w-12 h-12 mb-1" /><span className="text-xs">Logo</span></div>
         </div>
@@ -1063,7 +1052,6 @@ function CustomerLogin({ setView, setCurrentUserData, theme, isDemoMode }) {
   const handleLogin = async (e) => {
     e.preventDefault(); setLoading(true); setMsg("");
     if (isDemoMode) {
-        // Demo Mode Bypass
         setTimeout(() => {
             setCurrentUserData({ id: phone || "0912345678", phone: phone || "0912345678", name: "測試顧客", pin: "0000", totalSpent: 4500, points: 12, history: [], redeemedMilestones: [10] });
             setView("customer-dash");
@@ -1145,7 +1133,6 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
     if (!userData?.id) return;
     
     if (isDemoMode) {
-        // Demo Data - Add fake expiration dates
         const nextYear = new Date();
         nextYear.setFullYear(nextYear.getFullYear() + 1);
         setMyPrizes([
@@ -1155,19 +1142,16 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
         return;
     }
 
-    
     const docRef = doc(db, "customers", userData.id);
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) setData({ id: docSnap.id, ...docSnap.data() });
     });
-    
     
     const settingsRef = doc(db, "settings", "loyalty");
     const unsubSettings = onSnapshot(settingsRef, (docSnap) => {
         if (docSnap.exists()) setLoyaltySettings(docSnap.data());
     });
 
-    
     const qPrizes = query(collection(db, "prizes"), where("winner.phone", "==", userData.id)); 
     const unsubPrizes = onSnapshot(qPrizes, (snapshot) => {
       const fetchedPrizes = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -1188,7 +1172,6 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
         return;
     }
     try {
-      
       await updateDoc(doc(db, "prizes", prizeId), { redeemed: true, redeemedAt: serverTimestamp() });
       setConfirmRedeemId(null);
     } catch (error) { console.error("Redeem failed:", error); alert("兌換失敗，請稍後再試"); }
@@ -1214,7 +1197,6 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
       const prizesRef = collection(db, "prizes");
       const customerRef = doc(db, "customers", data.id);
       
-      // 計算一年後的過期時間
       const expiresAt = new Date();
       expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
@@ -1227,7 +1209,7 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
               winner: { name: data.name || "貴賓", phone: userData.id, ticketId: `LOYALTY-${selectedMilestone}PTS-${Date.now().toString().slice(-4)}` },
               type: 'loyalty_reward', 
               createdAt: serverTimestamp(),
-              expiresAt: expiresAt, // 設定過期時間
+              expiresAt: expiresAt, 
           });
           if (Number(selectedMilestone) === 20) {
               batch.set(customerRef, { points: increment(-20), redeemedMilestones: [] }, { merge: true });
@@ -1244,19 +1226,13 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
       setIsProcessing(false);
   };
 
-  // Filter only unredeemed prizes AND not expired for the main view
   const activePrizes = myPrizes.filter(p => {
-      // 1. 已兌換的移除
       if (p.redeemed) return false;
-      
-      // 2. 檢查是否過期
       if (p.expiresAt) {
           const now = new Date();
-          // 相容 Firestore Timestamp 和普通 Date 物件 (Demo模式)
           const expDate = p.expiresAt.toDate ? p.expiresAt.toDate() : new Date(p.expiresAt);
-          if (expDate < now) return false; // 已過期，移除
+          if (expDate < now) return false; 
       }
-      
       return true;
   });
 
@@ -1283,7 +1259,7 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
             <LoyaltyCard points={data.points || 0} redeemedMilestones={data.redeemedMilestones || []} onRedeemClick={openRedeemModal} theme={theme} settings={loyaltySettings} />
         )}
 
-        {/* Prize Box - Always Visible even in None mode */}
+        {/* Prize Box */}
         {activePrizes.length > 0 && (
           <div className="bg-white p-6 rounded-2xl shadow-md border-l-8 animate-in slide-in-from-bottom-2" style={{ borderColor: theme.colors.accent }}>
             <h3 className="font-bold mb-4 flex items-center gap-2 text-lg border-b pb-2" style={{ color: theme.colors.textDark, borderColor: theme.colors.cardBorder }}><Gift className="w-6 h-6" style={{ color: theme.colors.primary }} /> 我的獎品匣</h3>
@@ -1437,10 +1413,10 @@ function StoreSettings({ theme, isDemoMode, setCurrentThemeId, setEventType, eve
     useEffect(() => {
         if (!isDemoMode) {
             const fetchSettings = async () => {
-                
                 const docSnap = await getDoc(doc(db, "settings", "global"));
                 if (docSnap.exists()) {
-                    if (docSnap.data().activeTheme) setActiveTheme(docSnap.data().activeTheme);
+                    const data = docSnap.data();
+                    if (data.activeTheme) setActiveTheme(data.activeTheme);
                 }
             };
             fetchSettings();
@@ -1454,7 +1430,6 @@ function StoreSettings({ theme, isDemoMode, setCurrentThemeId, setEventType, eve
                 setCurrentThemeId(themeId);
                 setActiveTheme(themeId);
             } else {
-                
                 await setDoc(doc(db, "settings", "global"), { activeTheme: themeId }, { merge: true });
                 setActiveTheme(themeId);
             }
@@ -1469,7 +1444,6 @@ function StoreSettings({ theme, isDemoMode, setCurrentThemeId, setEventType, eve
             if (isDemoMode) {
                 setEventType(type);
             } else {
-                
                 await setDoc(doc(db, "settings", "global"), { eventType: type }, { merge: true });
                 setEventType(type);
             }
@@ -1559,7 +1533,6 @@ function LoyaltySettings({ theme, isDemoMode }) {
     useEffect(() => {
         if (!isDemoMode) {
             const fetchSettings = async () => {
-                
                 const docRef = doc(db, "settings", "loyalty");
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
@@ -1579,7 +1552,6 @@ function LoyaltySettings({ theme, isDemoMode }) {
             return;
         }
         try {
-            
             await setDoc(doc(db, "settings", "loyalty"), rewards);
             setMsg("設定已儲存！");
             setTimeout(() => setMsg(""), 3000);
@@ -1628,10 +1600,8 @@ function CheckInSystem({ theme, isDemoMode }) {
   const [amount, setAmount] = useState("");
   const [bentoQty, setBentoQty] = useState("");
   
-  // 修正：使用本地時區來初始化日期，避免 UTC+0 造成跨日問題
   const getTodayDate = () => {
     const d = new Date();
-    // 調整為當地時間：減去時區偏移量 (getTimezoneOffset 回傳的是 UTC - Local 的分鐘數，所以要減去)
     const localDate = new Date(d.getTime() - (d.getTimezoneOffset() * 60000));
     return localDate.toISOString().split("T")[0];
   };
@@ -1822,7 +1792,6 @@ function LotterySystem({ theme, isDemoMode }) {
   const [availableTicketCount, setAvailableTicketCount] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // 新增：指定中獎的 state
   const [targetPhone, setTargetPhone] = useState("");
   const [targetPrizeId, setTargetPrizeId] = useState("");
   
@@ -1870,11 +1839,9 @@ function LotterySystem({ theme, isDemoMode }) {
   };
 
   const drawWinner = async (prizeId) => {
-    // 檢查是否有指定中獎者
     const targetPrize = prizes.find(p => p.id === prizeId);
     const designatedPhone = targetPrize?.designatedTo;
 
-    // 建立抽獎池 (用於動畫效果)
     let pool = [];
     customers.forEach((c) => {
       const earned = Math.floor((c.totalSpent || 0) / 300);
@@ -1883,17 +1850,13 @@ function LotterySystem({ theme, isDemoMode }) {
       for (let i = 0; i < available; i++) { pool.push({ ...c, currentTicketId: `${c.phone}-${String(used + i + 1).padStart(2, "0")}` }); }
     });
 
-    // 如果沒有任何人有票，且沒有指定人選，則報錯
     if (pool.length === 0 && !designatedPhone) return showMsg("目前沒有可抽獎的票券！");
 
-    // 決定最終得主
     let finalWinner = null;
 
     if (designatedPhone) {
-        // 檢查指定者是否有票
         let targetUser = customers.find(c => c.id === designatedPhone);
         
-        // Demo 模式下模擬 targetUser
         if (isDemoMode && !targetUser && designatedPhone === '0912345678') {
              targetUser = { id: '0912345678', phone: '0912345678', name: 'VIP測試', totalSpent: 3000, usedTicketCount: 2 };
         }
@@ -1904,55 +1867,46 @@ function LotterySystem({ theme, isDemoMode }) {
             if (earned - used <= 0) {
                 return showMsg(`指定中獎人 ${targetUser.name || designatedPhone} 抽獎券不足，無法開獎！`);
             }
-            // 設定內定得主
             finalWinner = { 
                 ...targetUser, 
                 currentTicketId: `${targetUser.phone}-${String(used + 1).padStart(2, "0")}` 
             };
             
-            // 為了讓動畫看起來更真實，如果池子太小，手動把內定者加進去跑
             if (pool.length < 5) {
-                for(let k=0; k<5; k++) pool.push({ name: "...", phone: "..." }); // 填充假資料讓動畫跑
+                for(let k=0; k<5; k++) pool.push({ name: "...", phone: "..." }); 
             }
         } else {
             return showMsg("找不到指定的顧客資料！");
         }
     } else {
-        // 隨機抽選
         if (pool.length === 0) return showMsg("沒有票券可抽！");
         finalWinner = pool[Math.floor(Math.random() * pool.length)];
     }
 
-    // 開始動畫
     setIsDrawing(true); setWinner(null);
     let duration = 3000; let startTime = Date.now();
     
     const animate = () => {
       if (Date.now() - startTime < duration) { 
-          // 動畫期間隨機顯示
           setWinner(pool[Math.floor(Math.random() * pool.length)] || { name: "...", phone: "..." }); 
           requestAnimationFrame(animate); 
       } else {
-        // 動畫結束，顯示最終得主
         setWinner(finalWinner); 
         setIsDrawing(false);
         
-        // 計算一年後的過期時間
         const expiresAt = new Date();
         expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
         if (!isDemoMode) {
             const batch = writeBatch(db);
-            // 更新獎品：標記已領取、清除指定欄位
             const prizeRef = doc(prizesRef, prizeId);
             batch.update(prizeRef, { 
                 claimed: true, 
                 redeemed: false, 
                 winner: { name: finalWinner.name || "顧客", phone: finalWinner.phone, ticketId: finalWinner.currentTicketId },
                 expiresAt: expiresAt,
-                designatedTo: deleteField() // 重要：開獎後清除指定標記
+                designatedTo: deleteField() 
             });
-            // 扣除顧客票券
             const customerRef = doc(customersRef, finalWinner.id);
             batch.update(customerRef, { usedTicketCount: increment(1) });
             
@@ -1970,11 +1924,9 @@ function LotterySystem({ theme, isDemoMode }) {
     }; animate();
   };
 
-  // 修改：僅設定「指定中獎人」欄位，不進行開獎
   const handleDesignateWinner = async () => {
       if (!targetPhone || !targetPrizeId) return showMsg("請輸入電話並選擇獎品");
       
-      // 1. 檢查顧客是否存在 (或在 Demo 模式下模擬)
       if (!isDemoMode) {
           const docRef = doc(customersRef, targetPhone);
           const docSnap = await getDoc(docRef);
@@ -1986,7 +1938,6 @@ function LotterySystem({ theme, isDemoMode }) {
           showMsg(`Demo: 已預約 ${targetPhone} 獲獎，請按下該獎品的「抽獎」按鈕。`);
       } else {
           try {
-              // 僅更新獎品文件的 designatedTo 欄位
               await updateDoc(doc(prizesRef, targetPrizeId), {
                   designatedTo: targetPhone
               });
@@ -1996,7 +1947,6 @@ function LotterySystem({ theme, isDemoMode }) {
               showMsg("指定失敗");
           }
       }
-      // 重置欄位
       setTargetPhone("");
       setTargetPrizeId("");
   };
@@ -2012,7 +1962,6 @@ function LotterySystem({ theme, isDemoMode }) {
         <div><p className="text-sm font-medium mb-1 text-gray-500">歷史已發出總票數</p><p className="font-bold text-4xl text-gray-400">{customers.reduce((acc, c) => acc + Math.floor((c.totalSpent || 0) / 300), 0)} <span className="text-lg text-gray-300">張</span></p></div>
       </div>
       
-      {/* 新增獎品區塊 */}
       <div className="bg-white p-6 rounded-3xl shadow-sm border" style={{ borderColor: theme.colors.cardBorder }}>
         <h3 className="font-bold mb-4" style={{ color: theme.colors.textDark }}>新增獎品</h3>
         <form onSubmit={addPrize} className="flex flex-col md:flex-row gap-4 items-end bg-gray-50 p-4 rounded-xl border border-gray-200">
@@ -2022,7 +1971,6 @@ function LotterySystem({ theme, isDemoMode }) {
         </form>
       </div>
 
-      {/* 新增：指定中獎區塊 (VIP功能) */}
       <div className="bg-white p-6 rounded-3xl shadow-sm border border-l-8" style={{ borderColor: theme.colors.cardBorder, borderLeftColor: theme.colors.textDark }}>
         <h3 className="font-bold mb-4 flex items-center gap-2" style={{ color: theme.colors.textDark }}>
             <UserCheck className="w-5 h-5" /> 指定中獎 (黑箱/VIP贈禮)
@@ -2038,7 +1986,7 @@ function LotterySystem({ theme, isDemoMode }) {
                      <option value="">-- 請選擇獎品 --</option>
                      {unclaimedPrizes.map(p => (
                          <option key={p.id} value={p.id}>
-                             {p.name} {p.designatedTo ? "(已預約)" : ""}
+                             {p.name}
                          </option>
                      ))}
                  </select>
@@ -2068,13 +2016,12 @@ function LotterySystem({ theme, isDemoMode }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {prizes.length === 0 && <p className="col-span-full text-gray-400 text-center py-8 bg-white rounded-2xl border border-dashed border-gray-200">尚未設定獎品</p>}
         {prizes.map((p) => (
-          <div key={p.id} className={`border border-gray-200 p-4 rounded-2xl flex justify-between items-center bg-white shadow-sm hover:shadow-md transition-shadow ${p.designatedTo && !p.claimed ? "ring-2 ring-yellow-400" : ""}`}>
+          <div key={p.id} className="border border-gray-200 p-4 rounded-2xl flex justify-between items-center bg-white shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3">
               <div className={`p-2 rounded-full ${p.claimed ? "bg-gray-100" : "bg-red-50"}`}><Gift className={`w-6 h-6 ${p.claimed ? "text-gray-300" : ""}`} style={{ color: p.claimed ? undefined : theme.colors.primary }} /></div>
               <div>
                 <p className={`font-bold text-lg ${p.claimed ? "line-through text-gray-300" : "text-gray-800"}`}>
                     {p.name} 
-                    {p.designatedTo && !p.claimed && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded ml-2">已預約</span>}
                 </p>
                 {p.claimed && (<div className="text-sm mt-1"><p className="font-bold text-green-700">🎉 {p.winner?.name} ({p.winner?.phone?.substring(0, 4)}******)</p><div className="flex items-center gap-2 mt-1"><p className="text-xs text-gray-400 font-mono">Ticket: {maskTicketId(p.winner?.ticketId)}</p>{p.redeemed ? (<span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> 已於 {p.redeemedAt ? new Date(p.redeemedAt.seconds * 1000).toLocaleDateString() : ""} 兌換</span>) : (<span className="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-bold flex items-center gap-1"><Clock className="w-3 h-3" /> 尚未兌換</span>)}</div></div>)}
               </div>
@@ -2085,6 +2032,130 @@ function LotterySystem({ theme, isDemoMode }) {
         ))}
       </div>
       {isDrawing && winner && (<div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm"><div className="text-center text-white animate-in zoom-in duration-300 w-full max-w-sm p-8 rounded-3xl shadow-2xl border-4" style={{ backgroundColor: theme.colors.primary, borderColor: theme.colors.accent }}><p className="text-xl mb-6 font-bold uppercase tracking-widest" style={{ color: theme.colors.accent }}>Congratulations</p><Gift className="w-20 h-20 text-white mx-auto mb-6 animate-bounce" /><div className="text-5xl font-mono font-bold text-white tracking-wider mb-2">{winner.phone.substring(0, 4)}******</div><div className="text-2xl font-bold mb-4" style={{ color: theme.colors.accent }}>{winner.name}</div><div className="bg-black/20 px-6 py-2 rounded-full inline-block text-white/80 font-mono border border-white/20">{maskTicketId(winner.currentTicketId)}</div></div></div>)}
+    </div>
+  );
+}
+
+function DataBackupSystem({ theme, isDemoMode }) {
+  const [processing, setProcessing] = useState(false);
+  const [status, setStatus] = useState("");
+  const [pendingFile, setPendingFile] = useState(null);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetPin, setResetPin] = useState("");
+  
+  const customersRef = collection(db, "customers");
+  const prizesRef = collection(db, "prizes");
+
+  const handleDownload = async () => {
+    setProcessing(true); setStatus("準備資料中...");
+    if (isDemoMode) {
+        setTimeout(() => {
+            setStatus("展示模式：備份下載模擬成功！");
+            setProcessing(false);
+        }, 1000);
+        return;
+    }
+    try {
+      const customersSnap = await getDocs(customersRef);
+      const prizesSnap = await getDocs(prizesRef);
+      const data = { customers: customersSnap.docs.map((d) => ({ id: d.id, ...d.data() })), prizes: prizesSnap.docs.map((d) => ({ id: d.id, ...d.data() })), exportDate: new Date().toISOString() };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url; a.download = `wood_food_backup_${new Date().toISOString().split("T")[0]}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+      setStatus("備份下載完成！請妥善保存檔案。");
+    } catch (err) { console.error(err); setStatus("下載失敗，請稍後再試。"); }
+    setProcessing(false);
+  };
+
+  const onFileSelect = (e) => { const file = e.target.files?.[0]; if (file) setPendingFile(file); e.target.value = ""; };
+  const confirmUpload = async () => {
+    if (!pendingFile) return;
+    setProcessing(true); setStatus("讀取檔案中...");
+    if (isDemoMode) {
+        setTimeout(() => {
+            setStatus("展示模式：還原模擬成功！");
+            setProcessing(false);
+            setPendingFile(null);
+        }, 1000);
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const data = JSON.parse(event.target.result);
+        if (!data.customers || !Array.isArray(data.customers)) throw new Error("檔案格式錯誤：找不到顧客資料");
+        setStatus(`正在還原 ${data.customers.length} 筆顧客資料...`);
+        const customerPromises = data.customers.map(async (c) => { const { id, ...cData } = c; const docId = c.phone || id; if (!docId) return; await setDoc(doc(customersRef, docId), cData, { merge: true }); });
+        let prizePromises = []; if (data.prizes && Array.isArray(data.prizes)) { prizePromises = data.prizes.map(async (p) => { const { id, ...pData } = p; if (id) await setDoc(doc(prizesRef, id), pData, { merge: true }); else await addDoc(prizesRef, pData); }); }
+        await Promise.all([...customerPromises, ...prizePromises]);
+        setStatus(`還原成功！已更新 ${data.customers.length} 位顧客與 ${data.prizes?.length || 0} 個獎品設定。`);
+      } catch (err) { console.error(err); setStatus("還原失敗：" + err.message); }
+      setProcessing(false); setPendingFile(null);
+    };
+    reader.readAsText(pendingFile);
+  };
+
+  const handleResetEvent = async () => {
+    if (resetPin !== ADMIN_PIN) { alert("密碼錯誤，無法執行重置"); return; }
+    setProcessing(true); setStatus("正在重置活動資料...");
+    if (isDemoMode) {
+        setTimeout(() => {
+            setStatus("展示模式：系統重置模擬完成！");
+            setShowResetConfirm(false); setResetPin("");
+            setProcessing(false);
+        }, 1000);
+        return;
+    }
+    try {
+      const batch = writeBatch(db);
+      const customersSnap = await getDocs(customersRef);
+      const prizesSnap = await getDocs(prizesRef);
+      
+      customersSnap.docs.forEach((doc) => {
+          batch.update(doc.ref, { 
+              totalSpent: 0, 
+              usedTicketCount: 0, 
+              history: [], 
+              lastVisit: null
+          });
+      });
+
+      prizesSnap.docs.forEach((doc) => {
+          const data = doc.data();
+          if (data.redeemed === true) {
+              batch.delete(doc.ref);
+          }
+      });
+
+      await batch.commit();
+      setStatus("活動已重置！消費金額與抽獎紀錄已歸零 (點數、兌換進度與未兌換獎品已保留)。"); 
+      setShowResetConfirm(false); 
+      setResetPin("");
+    } catch (err) { console.error(err); setStatus("重置失敗: " + err.message); }
+    setProcessing(false);
+  };
+
+  return (
+    <div className="space-y-6 max-w-4xl mx-auto pt-8 border-t" style={{ borderColor: theme.colors.cardBorder }}>
+      <div className="bg-white p-6 rounded-3xl border text-center" style={{ borderColor: theme.colors.cardBorder }}><h3 className="text-xl font-bold mb-2 flex items-center justify-center gap-2" style={{ color: theme.colors.textDark }}><Settings className="w-6 h-6" /> 資料庫安全中心</h3><p className="text-sm md:text-base text-gray-500">管理備份與系統重置功能。<br />執行任何重置前，強烈建議先下載備份檔。</p></div>
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="bg-white p-8 rounded-3xl shadow-sm border flex flex-col items-center gap-4 hover:shadow-md transition-shadow" style={{ borderColor: theme.colors.cardBorder }}>
+          <div className="bg-blue-50 p-5 rounded-full"><Download className="w-10 h-10 text-blue-600" /></div><div className="text-center"><h4 className="font-bold text-gray-800 text-lg mb-1">下載備份檔</h4><p className="text-sm text-gray-500 mb-4">匯出所有顧客與獎品資料 (.json)</p></div><button onClick={handleDownload} disabled={processing} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-sm active:scale-95 disabled:opacity-50 flex justify-center items-center gap-2 text-lg">{processing ? "處理中..." : "立即下載"}</button>
+        </div>
+        <div className="bg-white p-8 rounded-3xl shadow-sm border flex flex-col items-center gap-4 hover:shadow-md transition-shadow relative" style={{ borderColor: theme.colors.cardBorder }}>
+          <div className="bg-green-50 p-5 rounded-full"><Upload className="w-10 h-10 text-green-600" /></div><div className="text-center"><h4 className="font-bold text-gray-800 text-lg mb-1">上傳還原</h4><p className="text-sm text-gray-500 mb-4">將備份檔寫回資料庫 (會覆蓋舊資料)</p></div>
+          {pendingFile ? (<div className="w-full bg-red-50 p-4 rounded-xl border border-red-200 animate-in fade-in zoom-in absolute inset-0 z-10 flex flex-col items-center justify-center text-center"><AlertTriangle className="w-8 h-8 text-red-500 mb-2" /><p className="text-red-800 font-bold mb-1">確定要還原嗎？</p><p className="text-xs text-red-600 mb-3">這將覆蓋現有資料且無法復原</p><div className="flex gap-2 w-full px-4"><button onClick={confirmUpload} className="flex-1 bg-red-600 text-white text-sm font-bold py-2 rounded-lg">確認覆蓋</button><button onClick={() => setPendingFile(null)} className="flex-1 bg-gray-200 text-gray-700 text-sm font-bold py-2 rounded-lg">取消</button></div></div>) : (<label className="w-full cursor-pointer"><input type="file" accept=".json" onChange={onFileSelect} disabled={processing} className="hidden" /><div className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl shadow-sm active:scale-95 transition-all flex justify-center items-center gap-2 text-lg">{processing ? "處理中..." : "選擇檔案並還原"}</div></label>)}
+        </div>
+      </div>
+      {status && <div className={`p-4 rounded-xl text-center font-bold text-lg ${status.includes("失敗") ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"}`}>{status}</div>}
+      <div className="mt-8 border-t-2 border-red-100 pt-8">
+        <div className="bg-red-50 p-6 md:p-8 rounded-3xl border border-red-200">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="text-left"><h4 className="text-xl font-bold text-red-800 flex items-center gap-2 mb-2"><RefreshCw className="w-6 h-6" /> 活動重置 (危險區域)</h4><p className="text-red-700 text-sm leading-relaxed">活動結束後使用此功能。<br />這將會 <strong className="underline">清空所有</strong> 顧客的消費金額、抽獎紀錄與<span className="underline">已兌換</span>獎品。<br /><span className="text-red-600 font-bold">(顧客帳號、未兌換獎品與集點進度將保留，方便下次活動使用)</span></p></div>
+            {showResetConfirm ? (<div className="w-full md:w-auto bg-white p-4 rounded-xl border-2 border-red-300 shadow-sm animate-in zoom-in"><p className="text-red-800 font-bold text-sm mb-2 text-center">請輸入管理密碼確認重置</p><input type="password" value={resetPin} onChange={(e) => setResetPin(e.target.value)} placeholder="輸入密碼" className="w-full p-2 border border-red-200 rounded-lg text-center mb-3 outline-none focus:border-red-500" /><div className="flex gap-2"><button onClick={handleResetEvent} className="flex-1 bg-red-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-red-700">確認執行</button><button onClick={() => { setShowResetConfirm(false); setResetPin(""); }} className="flex-1 bg-gray-200 text-gray-700 font-bold py-2 rounded-lg text-sm hover:bg-gray-300">取消</button></div></div>) : (<button onClick={() => setShowResetConfirm(true)} disabled={processing} className="w-full md:w-auto bg-white border-2 border-red-600 text-red-600 hover:bg-red-50 font-bold px-6 py-4 rounded-xl shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 whitespace-nowrap"><Trash2 className="w-5 h-5" /> 結束活動並重置資料</button>)}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
