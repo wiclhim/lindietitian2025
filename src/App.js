@@ -2038,7 +2038,7 @@ function LotterySystem({ theme, isDemoMode }) {
                      <option value="">-- 請選擇獎品 --</option>
                      {unclaimedPrizes.map(p => (
                          <option key={p.id} value={p.id}>
-                             {p.name}
+                             {p.name} {p.designatedTo ? "(已預約)" : ""}
                          </option>
                      ))}
                  </select>
@@ -2068,12 +2068,13 @@ function LotterySystem({ theme, isDemoMode }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {prizes.length === 0 && <p className="col-span-full text-gray-400 text-center py-8 bg-white rounded-2xl border border-dashed border-gray-200">尚未設定獎品</p>}
         {prizes.map((p) => (
-          <div key={p.id} className="border border-gray-200 p-4 rounded-2xl flex justify-between items-center bg-white shadow-sm hover:shadow-md transition-shadow">
+          <div key={p.id} className={`border border-gray-200 p-4 rounded-2xl flex justify-between items-center bg-white shadow-sm hover:shadow-md transition-shadow ${p.designatedTo && !p.claimed ? "ring-2 ring-yellow-400" : ""}`}>
             <div className="flex items-center gap-3">
               <div className={`p-2 rounded-full ${p.claimed ? "bg-gray-100" : "bg-red-50"}`}><Gift className={`w-6 h-6 ${p.claimed ? "text-gray-300" : ""}`} style={{ color: p.claimed ? undefined : theme.colors.primary }} /></div>
               <div>
                 <p className={`font-bold text-lg ${p.claimed ? "line-through text-gray-300" : "text-gray-800"}`}>
                     {p.name} 
+                    {p.designatedTo && !p.claimed && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded ml-2">已預約</span>}
                 </p>
                 {p.claimed && (<div className="text-sm mt-1"><p className="font-bold text-green-700">🎉 {p.winner?.name} ({p.winner?.phone?.substring(0, 4)}******)</p><div className="flex items-center gap-2 mt-1"><p className="text-xs text-gray-400 font-mono">Ticket: {maskTicketId(p.winner?.ticketId)}</p>{p.redeemed ? (<span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> 已於 {p.redeemedAt ? new Date(p.redeemedAt.seconds * 1000).toLocaleDateString() : ""} 兌換</span>) : (<span className="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-bold flex items-center gap-1"><Clock className="w-3 h-3" /> 尚未兌換</span>)}</div></div>)}
               </div>
