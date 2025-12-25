@@ -2116,16 +2116,34 @@ function DataBackupSystem({ theme, isDemoMode }) {
       
       snapshot.docs.forEach((docSnap) => {
           const data = docSnap.data();
-          // Use createdAt as the anchor. If it's a loyalty reward, createdAt is the issue date.
-          // If it's a lottery prize, createdAt is when the prize was added to pool. 
-          // (Close enough approximation for retro-fixing).
           if (data.createdAt) {
-              const createdDate = data.createdAt.toDate();
-              const newExpiresAt = new Date(createdDate);
-              newExpiresAt.setMonth(newExpiresAt.getMonth() + 6); // Set to 6 months from creation
+              let createdDate;
               
-              batch.update(docSnap.ref, { expiresAt: newExpiresAt });
-              count++;
+              // 1. 標準 Firestore Timestamp (有 .toDate 方法)
+              if (typeof data.createdAt.toDate === 'function') {
+                  createdDate = data.createdAt.toDate();
+              }
+              // 2. 從 JSON 還原的物件 (沒有 .toDate，只有 seconds)
+              else if (data.createdAt.seconds) {
+                  createdDate = new Date(data.createdAt.seconds * 1000);
+              }
+              // 3. 原生 Date 物件
+              else if (data.createdAt instanceof Date) {
+                  createdDate = data.createdAt;
+              }
+              // 4. 字串或數字 (最後嘗試)
+              else {
+                  createdDate = new Date(data.createdAt);
+              }
+
+              // 確保轉換出來的時間有效
+              if (createdDate && !isNaN(createdDate.getTime())) {
+                  const newExpiresAt = new Date(createdDate);
+                  newExpiresAt.setMonth(newExpiresAt.getMonth() + 6); // Set to 6 months from creation
+                  
+                  batch.update(docSnap.ref, { expiresAt: newExpiresAt });
+                  count++;
+              }
           }
       });
       
