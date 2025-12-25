@@ -65,7 +65,8 @@ import {
   Leaf,
   Layers,
   Coffee,
-  Trophy
+  Trophy,
+  UserCheck // Added for the designate feature
 } from "lucide-react";
 
 // --- Firebase Initialization ---
@@ -122,7 +123,6 @@ const THEMES = {
     particleType: 'snow',
     title: '聖誕活動',
     milestoneText: '聖誕禮物',
-    // 使用原本的聖誕 Logo
     logo: 'https://i.ibb.co/GvSs1BtJ/1765508995830.png'
   },
   cny: {
@@ -145,7 +145,6 @@ const THEMES = {
     particleType: 'coin',
     title: '新春活動',
     milestoneText: '新春紅包',
-    // 新年
     logo: 'https://i.ibb.co/35kcbtDk/1766105776647.png'
   },
   daily: {
@@ -168,7 +167,6 @@ const THEMES = {
     particleType: 'none',
     title: '集點活動',
     milestoneText: '專屬好禮',
-    // 一般 (Daily)
     logo: 'https://i.ibb.co/Zz2cFMkT/1766320100151.png'
   },
   halloween: {
@@ -191,7 +189,6 @@ const THEMES = {
     particleType: 'ghost',
     title: '萬聖節活動',
     milestoneText: '搗蛋好禮',
-    // 萬聖
     logo: 'https://i.ibb.co/f6T1X9d/1766102862428.png'
   },
   sakura: {
@@ -214,7 +211,6 @@ const THEMES = {
     particleType: 'sakura',
     title: '春日祭典',
     milestoneText: '櫻花好禮',
-    // 春櫻
     logo: 'https://i.ibb.co/Z1MSwCpW/1766102771173.png'
   },
   autumn: {
@@ -237,7 +233,6 @@ const THEMES = {
     particleType: 'leaf',
     title: '秋收感恩',
     milestoneText: '豐收好禮',
-    // 秋楓
     logo: 'https://i.ibb.co/kVGCHMJS/1766103839305.png'
   },
   moon: {
@@ -260,7 +255,6 @@ const THEMES = {
     particleType: 'star',
     title: '佳節活動',
     milestoneText: '團圓好禮',
-    // 中秋 (也可切換為 元宵: https://i.ibb.co/j9hbtLS4/1766223796114.png)
     logo: 'https://i.ibb.co/dJsfGR3P/IMG-20251219-081938.jpg'
   },
   summer: {
@@ -283,7 +277,6 @@ const THEMES = {
     particleType: 'bubble',
     title: '仲夏活動',
     milestoneText: '清涼好禮',
-    // 端午 (也可切換為 夏天: https://i.ibb.co/PzwRjKD8/1766292522307.png)
     logo: 'https://i.ibb.co/XfFC431m/1766103300724.png'
   }
 };
@@ -411,7 +404,7 @@ const RedeemModal = ({ isOpen, onClose, onConfirm, prizeName, milestone, isProce
         
         <div className="text-center">
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border-2"
-               style={{ backgroundColor: `${theme.colors.cardBg}`, borderColor: theme.colors.accent }}>
+                style={{ backgroundColor: `${theme.colors.cardBg}`, borderColor: theme.colors.accent }}>
             <Gift className="w-8 h-8" style={{ color: theme.colors.primary }} />
           </div>
           
@@ -1827,6 +1820,10 @@ function LotterySystem({ theme, isDemoMode }) {
   const [isAdding, setIsAdding] = useState(false);
   const [availableTicketCount, setAvailableTicketCount] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
+
+  // 新增：指定中獎的 state
+  const [targetPhone, setTargetPhone] = useState("");
+  const [targetPrizeId, setTargetPrizeId] = useState("");
   
   const customersRef = collection(db, "customers");
   const prizesRef = collection(db, "prizes");
@@ -1907,6 +1904,57 @@ function LotterySystem({ theme, isDemoMode }) {
     }; animate();
   };
 
+  // 新增：處理指定中獎邏輯
+  const handleDesignateWinner = async () => {
+      if (!targetPhone || !targetPrizeId) return showMsg("請輸入電話並選擇獎品");
+      
+      // 1. 檢查顧客是否存在 (或在 Demo 模式下模擬)
+      let customerData = null;
+      if (isDemoMode) {
+          customerData = { name: "VIP測試", phone: targetPhone };
+      } else {
+          const docRef = doc(customersRef, targetPhone);
+          const docSnap = await getDoc(docRef);
+          if (!docSnap.exists()) return showMsg("找不到此顧客，請先建立資料");
+          customerData = docSnap.data();
+      }
+
+      // 2. 執行指定中獎
+      const expiresAt = new Date();
+      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+      
+      const winnerInfo = {
+          name: customerData.name || "VIP貴賓",
+          phone: targetPhone,
+          ticketId: `MANUAL-VIP-${Date.now().toString().slice(-6)}` // 使用特殊票號標記手動指定
+      };
+
+      if (isDemoMode) {
+          setPrizes(prev => prev.map(p => p.id === targetPrizeId ? { ...p, claimed: true, winner: winnerInfo, expiresAt: expiresAt } : p));
+          showMsg(`Demo: 已指定 ${targetPhone} 獲得獎品`);
+      } else {
+          try {
+              // 注意：手動指定通常不扣除票券(因為可能是額外贈禮)，故不更新 usedTicketCount
+              // 若需要扣除，可在此加入 updateDoc(doc(customersRef, targetPhone), { usedTicketCount: increment(1) });
+              await updateDoc(doc(prizesRef, targetPrizeId), {
+                  claimed: true,
+                  redeemed: false,
+                  winner: winnerInfo,
+                  expiresAt: expiresAt
+              });
+              showMsg(`成功指定！`);
+          } catch (err) {
+              console.error(err);
+              showMsg("指定失敗");
+          }
+      }
+      // 重置欄位
+      setTargetPhone("");
+      setTargetPrizeId("");
+  };
+
+  const unclaimedPrizes = prizes.filter(p => !p.claimed && p.type !== 'loyalty_reward');
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto relative">
       {errorMsg && <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/80 text-white px-6 py-4 rounded-xl z-50 font-bold animate-in fade-in zoom-in">{errorMsg}</div>}
@@ -1915,6 +1963,8 @@ function LotterySystem({ theme, isDemoMode }) {
         <div className="w-px bg-gray-200 hidden md:block"></div>
         <div><p className="text-sm font-medium mb-1 text-gray-500">歷史已發出總票數</p><p className="font-bold text-4xl text-gray-400">{customers.reduce((acc, c) => acc + Math.floor((c.totalSpent || 0) / 300), 0)} <span className="text-lg text-gray-300">張</span></p></div>
       </div>
+      
+      {/* 新增獎品區塊 */}
       <div className="bg-white p-6 rounded-3xl shadow-sm border" style={{ borderColor: theme.colors.cardBorder }}>
         <h3 className="font-bold mb-4" style={{ color: theme.colors.textDark }}>新增獎品</h3>
         <form onSubmit={addPrize} className="flex flex-col md:flex-row gap-4 items-end bg-gray-50 p-4 rounded-xl border border-gray-200">
@@ -1923,6 +1973,48 @@ function LotterySystem({ theme, isDemoMode }) {
           <button disabled={isAdding} className="w-full md:w-auto text-white px-8 py-3 rounded-xl h-[54px] font-bold active:scale-95 transition-transform" style={{ backgroundColor: theme.colors.primary }}>{isAdding ? "..." : "新增"}</button>
         </form>
       </div>
+
+      {/* 新增：指定中獎區塊 (VIP功能) */}
+      <div className="bg-white p-6 rounded-3xl shadow-sm border border-l-8" style={{ borderColor: theme.colors.cardBorder, borderLeftColor: theme.colors.textDark }}>
+        <h3 className="font-bold mb-4 flex items-center gap-2" style={{ color: theme.colors.textDark }}>
+            <UserCheck className="w-5 h-5" /> 指定中獎 (黑箱/VIP贈禮)
+        </h3>
+        <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 flex flex-col md:flex-row gap-4 items-end">
+             <div className="flex-1 w-full">
+                 <label className="text-sm font-bold text-gray-600 mb-2 block">選擇未開獎獎品</label>
+                 <select 
+                    value={targetPrizeId} 
+                    onChange={(e) => setTargetPrizeId(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-1 text-lg bg-white text-gray-800"
+                 >
+                     <option value="">-- 請選擇獎品 --</option>
+                     {unclaimedPrizes.map(p => (
+                         <option key={p.id} value={p.id}>{p.name}</option>
+                     ))}
+                 </select>
+             </div>
+             <div className="flex-1 w-full">
+                 <label className="text-sm font-bold text-gray-600 mb-2 block">指定顧客手機</label>
+                 <input 
+                    type="tel" 
+                    value={targetPhone} 
+                    onChange={(e) => setTargetPhone(e.target.value)} 
+                    placeholder="輸入手機號碼" 
+                    className="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-1 text-lg bg-white text-gray-800" 
+                 />
+             </div>
+             <button 
+                onClick={handleDesignateWinner}
+                className="w-full md:w-auto bg-gray-800 text-white px-6 py-3 rounded-xl h-[54px] font-bold active:scale-95 transition-transform whitespace-nowrap"
+             >
+                確認指定
+             </button>
+        </div>
+        <p className="text-xs text-gray-500 mt-2 px-1">
+            * 此功能將直接指定中獎者，不需扣除抽獎券，亦不需進行隨機抽獎。請謹慎使用。
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {prizes.length === 0 && <p className="col-span-full text-gray-400 text-center py-8 bg-white rounded-2xl border border-dashed border-gray-200">尚未設定獎品</p>}
         {prizes.map((p) => (
