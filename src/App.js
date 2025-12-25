@@ -2041,6 +2041,7 @@ function DataBackupSystem({ theme, isDemoMode }) {
   const [status, setStatus] = useState("");
   const [pendingFile, setPendingFile] = useState(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showFixConfirm, setShowFixConfirm] = useState(false); // New state for fix confirm
   const [resetPin, setResetPin] = useState("");
   
   const customersRef = collection(db, "customers");
@@ -2093,6 +2094,46 @@ function DataBackupSystem({ theme, isDemoMode }) {
       setProcessing(false); setPendingFile(null);
     };
     reader.readAsText(pendingFile);
+  };
+
+  const handleFixExpiry = async () => {
+    if (resetPin !== ADMIN_PIN) { alert("密碼錯誤，無法執行"); return; }
+    setProcessing(true); setStatus("正在校正效期...");
+    if (isDemoMode) {
+        setTimeout(() => {
+            setStatus("展示模式：效期校正模擬完成！已將所有舊獎品效期重設為發送日+6個月。");
+            setShowFixConfirm(false); setResetPin("");
+            setProcessing(false);
+        }, 1000);
+        return;
+    }
+    try {
+      // Find all claimed but unredeemed prizes
+      const q = query(prizesRef, where("claimed", "==", true), where("redeemed", "==", false));
+      const snapshot = await getDocs(q);
+      const batch = writeBatch(db);
+      let count = 0;
+      
+      snapshot.docs.forEach((docSnap) => {
+          const data = docSnap.data();
+          // Use createdAt as the anchor. If it's a loyalty reward, createdAt is the issue date.
+          // If it's a lottery prize, createdAt is when the prize was added to pool. 
+          // (Close enough approximation for retro-fixing).
+          if (data.createdAt) {
+              const createdDate = data.createdAt.toDate();
+              const newExpiresAt = new Date(createdDate);
+              newExpiresAt.setMonth(newExpiresAt.getMonth() + 6); // Set to 6 months from creation
+              
+              batch.update(docSnap.ref, { expiresAt: newExpiresAt });
+              count++;
+          }
+      });
+      
+      if (count > 0) await batch.commit();
+      setStatus(`校正完成！已更新 ${count} 筆未兌換獎品的效期 (設為發出日+6個月)。`);
+      setShowFixConfirm(false); setResetPin("");
+    } catch (err) { console.error(err); setStatus("校正失敗: " + err.message); }
+    setProcessing(false);
   };
 
   const handleResetEvent = async () => {
@@ -2149,7 +2190,35 @@ function DataBackupSystem({ theme, isDemoMode }) {
       </div>
       {status && <div className={`p-4 rounded-xl text-center font-bold text-lg ${status.includes("失敗") ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"}`}>{status}</div>}
       <div className="mt-8 border-t-2 border-red-100 pt-8">
-        <div className="bg-red-50 p-6 md:p-8 rounded-3xl border border-red-200">
+        <div className="bg-red-50 p-6 md:p-8 rounded-3xl border border-red-200 space-y-6">
+          {/* Fix Expiry Section */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-b border-red-200 pb-6">
+            <div className="text-left">
+                <h4 className="text-xl font-bold text-orange-800 flex items-center gap-2 mb-2">
+                    <Clock className="w-6 h-6" /> 校正舊獎品效期
+                </h4>
+                <p className="text-orange-700 text-sm leading-relaxed">
+                    因應新規則 (6個月)，此功能可將所有<strong className="underline">已發出但未兌換</strong>的舊獎品，<br/>
+                    強制重新計算效期為：<span className="font-bold">「原發送日 + 6個月」</span>。
+                </p>
+            </div>
+            {showFixConfirm ? (
+                <div className="w-full md:w-auto bg-white p-4 rounded-xl border-2 border-orange-300 shadow-sm animate-in zoom-in">
+                    <p className="text-orange-800 font-bold text-sm mb-2 text-center">請輸入管理密碼確認</p>
+                    <input type="password" value={resetPin} onChange={(e) => setResetPin(e.target.value)} placeholder="輸入密碼" className="w-full p-2 border border-orange-200 rounded-lg text-center mb-3 outline-none focus:border-orange-500" />
+                    <div className="flex gap-2">
+                        <button onClick={handleFixExpiry} className="flex-1 bg-orange-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-orange-700">確認執行</button>
+                        <button onClick={() => { setShowFixConfirm(false); setResetPin(""); }} className="flex-1 bg-gray-200 text-gray-700 font-bold py-2 rounded-lg text-sm hover:bg-gray-300">取消</button>
+                    </div>
+                </div>
+            ) : (
+                <button onClick={() => setShowFixConfirm(true)} disabled={processing} className="w-full md:w-auto bg-white border-2 border-orange-600 text-orange-600 hover:bg-orange-50 font-bold px-6 py-4 rounded-xl shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 whitespace-nowrap">
+                    <Clock className="w-5 h-5" /> 執行效期校正
+                </button>
+            )}
+          </div>
+
+          {/* Reset Section */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="text-left"><h4 className="text-xl font-bold text-red-800 flex items-center gap-2 mb-2"><RefreshCw className="w-6 h-6" /> 活動重置 (危險區域)</h4><p className="text-red-700 text-sm leading-relaxed">活動結束後使用此功能。<br />這將會 <strong className="underline">清空所有</strong> 顧客的消費金額、抽獎紀錄與<span className="underline">已兌換</span>獎品。<br /><span className="text-red-600 font-bold">(顧客帳號、未兌換獎品與集點進度將保留，方便下次活動使用)</span></p></div>
             {showResetConfirm ? (<div className="w-full md:w-auto bg-white p-4 rounded-xl border-2 border-red-300 shadow-sm animate-in zoom-in"><p className="text-red-800 font-bold text-sm mb-2 text-center">請輸入管理密碼確認重置</p><input type="password" value={resetPin} onChange={(e) => setResetPin(e.target.value)} placeholder="輸入密碼" className="w-full p-2 border border-red-200 rounded-lg text-center mb-3 outline-none focus:border-red-500" /><div className="flex gap-2"><button onClick={handleResetEvent} className="flex-1 bg-red-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-red-700">確認執行</button><button onClick={() => { setShowResetConfirm(false); setResetPin(""); }} className="flex-1 bg-gray-200 text-gray-700 font-bold py-2 rounded-lg text-sm hover:bg-gray-300">取消</button></div></div>) : (<button onClick={() => setShowResetConfirm(true)} disabled={processing} className="w-full md:w-auto bg-white border-2 border-red-600 text-red-600 hover:bg-red-50 font-bold px-6 py-4 rounded-xl shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 whitespace-nowrap"><Trash2 className="w-5 h-5" /> 結束活動並重置資料</button>)}
