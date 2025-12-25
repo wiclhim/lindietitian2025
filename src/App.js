@@ -1134,7 +1134,7 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
     
     if (isDemoMode) {
         const nextYear = new Date();
-        nextYear.setFullYear(nextYear.getFullYear() + 1);
+        nextYear.setMonth(nextYear.getMonth() + 6); // Set demo prize expiration to 6 months
         setMyPrizes([
             { id: "demo-prize-1", name: "🎁 集點好禮：免費小菜", claimed: true, redeemed: false, winner: { ticketId: "LOYALTY-10PTS-9999" }, expiresAt: { seconds: nextYear.getTime() / 1000, toDate: () => nextYear } },
             { id: "demo-prize-2", name: "🎁 集點好禮：茶香豆干", claimed: true, redeemed: true, redeemedAt: { seconds: Date.now()/1000 }, winner: { ticketId: "LOYALTY-10PTS-8888" } }
@@ -1198,7 +1198,7 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
       const customerRef = doc(db, "customers", data.id);
       
       const expiresAt = new Date();
-      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+      expiresAt.setMonth(expiresAt.getMonth() + 6); // Set expiration to 6 months
 
       try {
           const batch = writeBatch(db);
@@ -1895,7 +1895,7 @@ function LotterySystem({ theme, isDemoMode }) {
         setIsDrawing(false);
         
         const expiresAt = new Date();
-        expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+        expiresAt.setMonth(expiresAt.getMonth() + 6); // Set expiration to 6 months
 
         if (!isDemoMode) {
             const batch = writeBatch(db);
