@@ -67,7 +67,12 @@ import {
   Layers,
   Coffee,
   Trophy,
-  UserCheck
+  UserCheck,
+  Gamepad2,
+  Dices,
+  Scissors,
+  Eraser,
+  Coins
 } from "lucide-react";
 
 // --- Firebase Initialization ---
@@ -83,12 +88,12 @@ const firebaseConfig = {
 
 let app, auth, db;
 try {
-  if (!window.firebaseAppInitialized) {
+  if (!(window as any).firebaseAppInitialized) {
       app = initializeApp(firebaseConfig);
-      window.firebaseAppInitialized = true;
-      window.firebaseAppInstance = app;
+      (window as any).firebaseAppInitialized = true;
+      (window as any).firebaseAppInstance = app;
   } else {
-      app = window.firebaseAppInstance;
+      app = (window as any).firebaseAppInstance;
   }
   auth = getAuth(app);
   db = getFirestore(app);
@@ -288,7 +293,7 @@ const maskTicketId = (ticketId) => {
 };
 
 // --- Theme Context Provider ---
-const ThemeContext = React.createContext();
+const ThemeContext = React.createContext(null);
 
 // --- Particle Effects Component ---
 const ParticleEffect = ({ type }) => {
@@ -456,7 +461,7 @@ const WinnersList = ({ theme }) => {
     if (!db) return;
     const unsubscribe = onSnapshot(collection(db, "prizes"), (snapshot) => {
       const fetchedWinners = snapshot.docs
-        .map((d) => ({ id: d.id, ...d.data() }))
+        .map((d) => ({ id: d.id, ...d.data() } as any))
         .filter((p) => p.claimed === true && p.type !== 'loyalty_reward'); 
       fetchedWinners.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
       setWinners(fetchedWinners);
@@ -713,9 +718,9 @@ export default function App() {
 
     const initAuth = async () => {
       try {
-        if (typeof window.__initial_auth_token !== 'undefined' && window.__initial_auth_token) {
+        if (typeof (window as any).__initial_auth_token !== 'undefined' && (window as any).__initial_auth_token) {
            try {
-             await signInWithCustomToken(auth, window.__initial_auth_token);
+             await signInWithCustomToken(auth, (window as any).__initial_auth_token as string);
            } catch (e) { console.warn("Fallback auth"); }
         } else {
             await signInAnonymously(auth);
@@ -900,7 +905,7 @@ function MenuView({ goBack, theme }) {
           <Utensils className="w-8 h-8" style={{ color: theme.colors.primary }} /> 木木營養食 美味菜單
         </h2>
         <div className="flex justify-center bg-gray-50 rounded-2xl overflow-hidden min-h-[300px] md:min-h-[500px] items-center border border-dashed border-gray-300">
-          <img src={MENU_URL} alt="店內菜單" className="max-w-full h-auto object-contain shadow-sm" onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/600x800?text=Menu+Image+Not+Found"; }} />
+          <img src={MENU_URL} alt="店內菜單" className="max-w-full h-auto object-contain shadow-sm" onError={(e) => { e.target.onerror = null; (e.target as HTMLImageElement).src = "https://placehold.co/600x800?text=Menu+Image+Not+Found"; }} />
         </div>
         <p className="text-center text-sm md:text-base mt-6 py-2 rounded-lg" style={{ backgroundColor: theme.colors.cardBg, color: theme.colors.textDark }}>* 餐點內容依現場供應為主，圖片僅供參考</p>
       </div>
@@ -929,7 +934,7 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both' }) {
       <div onClick={handleLogoClick} className="p-[6px] rounded-full shadow-2xl w-40 h-40 md:w-56 md:h-56 flex items-center justify-center overflow-hidden mb-2 relative z-10 cursor-pointer active:scale-95 transition-transform"
            style={{ background: `linear-gradient(to right, ${theme.colors.primary}, ${theme.colors.secondary})` }}>
         <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-white">
-          <img src={theme.logo} alt="Store Logo" className="w-full h-full object-cover scale-150" onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }} />
+          <img src={theme.logo} alt="Store Logo" className="w-full h-full object-cover scale-150" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; ((e.target as HTMLImageElement).nextSibling as HTMLElement).style.display = "flex"; }} />
           <div className="hidden w-full h-full flex-col items-center justify-center text-gray-300 bg-gray-50"><Store className="w-12 h-12 mb-1" /><span className="text-xs">Logo</span></div>
         </div>
         <div className="absolute -top-1 -right-1 transform rotate-12"><theme.icon className="w-12 h-12 md:w-16 md:h-16 drop-shadow-md" style={{ color: theme.colors.primary }} /></div>
@@ -1115,6 +1120,452 @@ function CustomerLogin({ setView, setCurrentUserData, theme, isDemoMode }) {
   );
 }
 
+// --- Mini Games Components ---
+const MiniGamesHub = ({ theme, userData, isDemoMode }) => {
+  const [gamesConfig, setGamesConfig] = useState({
+    dice: { enabled: false, prizes: [] },
+    rps: { enabled: false, prizes: [] },
+    scratch: { enabled: false, prizes: [] }
+  });
+  const [activeGame, setActiveGame] = useState(null);
+
+  useEffect(() => {
+    if (!db && !isDemoMode) return;
+    if (isDemoMode) {
+      setGamesConfig({
+        dice: { enabled: true, prizes: ["折價券10元"] },
+        rps: { enabled: true, prizes: ["小菜一份"] },
+        scratch: { enabled: true, prizes: ["飲料一杯"] }
+      });
+      return;
+    }
+    const unsub = onSnapshot(doc(db, "settings", "minigames"), (docSnap) => {
+      if (docSnap.exists()) {
+        setGamesConfig(docSnap.data() as any);
+      }
+    });
+    return () => unsub();
+  }, [isDemoMode]);
+
+  const hasEnabledGames = Object.values(gamesConfig).some(g => g.enabled);
+
+  if (!hasEnabledGames) return null;
+
+  return (
+    <div className="bg-white p-6 rounded-2xl shadow-md border-l-8 animate-in slide-in-from-bottom-2 mt-6" style={{ borderColor: theme.colors.accent }}>
+      <h3 className="font-bold mb-4 flex items-center gap-2 text-lg border-b pb-2" style={{ color: theme.colors.textDark, borderColor: theme.colors.cardBorder }}>
+        <Gamepad2 className="w-6 h-6" style={{ color: theme.colors.primary }} /> 每日挑戰小遊戲
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {gamesConfig.dice?.enabled && (
+          <button onClick={() => setActiveGame('dice')} className="flex items-center gap-3 p-4 rounded-xl border-2 hover:bg-gray-50 transition-all active:scale-95 shadow-sm" style={{ borderColor: theme.colors.cardBorder }}>
+            <div className="bg-red-100 p-3 rounded-full text-red-600"><Dices className="w-6 h-6" /></div>
+            <div className="text-left">
+              <div className="font-bold text-gray-800">幸運骰子</div>
+              <div className="text-xs text-gray-500">每日一次</div>
+            </div>
+          </button>
+        )}
+        {gamesConfig.rps?.enabled && (
+          <button onClick={() => setActiveGame('rps')} className="flex items-center gap-3 p-4 rounded-xl border-2 hover:bg-gray-50 transition-all active:scale-95 shadow-sm" style={{ borderColor: theme.colors.cardBorder }}>
+             <div className="bg-blue-100 p-3 rounded-full text-blue-600"><Scissors className="w-6 h-6" /></div>
+             <div className="text-left">
+               <div className="font-bold text-gray-800">剪刀石頭布</div>
+               <div className="text-xs text-gray-500">每日一次</div>
+             </div>
+          </button>
+        )}
+        {gamesConfig.scratch?.enabled && (
+          <button onClick={() => setActiveGame('scratch')} className="flex items-center gap-3 p-4 rounded-xl border-2 hover:bg-gray-50 transition-all active:scale-95 shadow-sm" style={{ borderColor: theme.colors.cardBorder }}>
+             <div className="bg-yellow-100 p-3 rounded-full text-yellow-600"><Eraser className="w-6 h-6" /></div>
+             <div className="text-left">
+               <div className="font-bold text-gray-800">美味刮刮樂</div>
+               <div className="text-xs text-gray-500">每日一次</div>
+             </div>
+          </button>
+        )}
+      </div>
+
+      {activeGame && (
+        <GameModal 
+          gameType={activeGame} 
+          onClose={() => setActiveGame(null)} 
+          theme={theme} 
+          userData={userData}
+          isDemoMode={isDemoMode}
+          config={gamesConfig[activeGame]}
+        />
+      )}
+    </div>
+  );
+};
+
+const GameModal = ({ gameType, onClose, theme, userData, isDemoMode, config }) => {
+  const [gameState, setGameState] = useState('check'); // check, playing, won, lost, played
+  const [prize, setPrize] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  // Game specific states
+  const [diceResult, setDiceResult] = useState([1, 1]);
+  const [rpsChoice, setRpsChoice] = useState(null); // 'rock', 'paper', 'scissors'
+  const [rpsCpu, setRpsCpu] = useState(null);
+  const [scratchRevealed, setScratchRevealed] = useState([false, false, false]);
+  const [scratchIcons, setScratchIcons] = useState([]);
+
+  useEffect(() => {
+    checkPlayedToday();
+  }, []);
+
+  const getTodayStr = () => new Date().toLocaleDateString();
+
+  const checkPlayedToday = async () => {
+    if (isDemoMode) {
+      setLoading(false);
+      setGameState('playing');
+      if (gameType === 'scratch') setupScratch();
+      return;
+    }
+    
+    // Check local logic or DB logic
+    const docRef = doc(db, "customers", userData.id);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const lastPlayed = data.gamification?.[`lastPlayed${gameType}`]; // timestamp
+      
+      if (lastPlayed) {
+         const lastDate = lastPlayed.toDate().toLocaleDateString();
+         if (lastDate === getTodayStr()) {
+            setGameState('played');
+            setLoading(false);
+            return;
+         }
+      }
+    }
+    setGameState('playing');
+    if (gameType === 'scratch') setupScratch();
+    setLoading(false);
+  };
+
+  const saveWin = async (wonPrize) => {
+      if(isDemoMode) return;
+      
+      const batch = writeBatch(db);
+      const prizesRef = collection(db, "prizes");
+      const customerRef = doc(db, "customers", userData.id);
+      const newPrizeRef = doc(prizesRef);
+      
+      const expiresAt = new Date();
+      expiresAt.setMonth(expiresAt.getMonth() + 1); // Game prizes expire in 1 month
+
+      batch.set(newPrizeRef, {
+        name: `🎮 遊戲獎勵：${wonPrize}`,
+        claimed: true,
+        redeemed: false,
+        winner: { name: userData.name || "貴賓", phone: userData.id, ticketId: `GAME-${gameType.toUpperCase()}-${Date.now().toString().slice(-4)}` },
+        type: 'game_reward',
+        createdAt: serverTimestamp(),
+        expiresAt: expiresAt
+      });
+
+      batch.set(customerRef, {
+          gamification: { [`lastPlayed${gameType}`]: serverTimestamp() }
+      }, { merge: true });
+
+      await batch.commit();
+  };
+
+  const markPlayed = async () => {
+      if(isDemoMode) return;
+      await setDoc(doc(db, "customers", userData.id), {
+          gamification: { [`lastPlayed${gameType}`]: serverTimestamp() }
+      }, { merge: true });
+  }
+
+  const getRandomPrize = () => {
+      const list = config.prizes && config.prizes.length > 0 ? config.prizes : ["神秘小禮"];
+      return list[Math.floor(Math.random() * list.length)];
+  };
+
+  // --- DICE LOGIC ---
+  const rollDice = () => {
+    if(gameState !== 'playing') return;
+    let rolls = 0;
+    const interval = setInterval(() => {
+        setDiceResult([Math.ceil(Math.random()*6), Math.ceil(Math.random()*6)]);
+        rolls++;
+        if(rolls > 10) {
+            clearInterval(interval);
+            const final = [Math.ceil(Math.random()*6), Math.ceil(Math.random()*6)];
+            setDiceResult(final);
+            const sum = final[0] + final[1];
+            // Win condition: Sum >= 8 or Pairs
+            if (sum >= 8 || final[0] === final[1]) {
+                const p = getRandomPrize();
+                setPrize(p);
+                setGameState('won');
+                saveWin(p);
+            } else {
+                setGameState('lost');
+                markPlayed();
+            }
+        }
+    }, 100);
+  };
+
+  // --- RPS LOGIC ---
+  const playRps = (choice) => {
+      setRpsChoice(choice);
+      const opts = ['rock', 'paper', 'scissors'];
+      const cpu = opts[Math.floor(Math.random() * 3)];
+      setRpsCpu(cpu);
+
+      let result = 'lose';
+      if (choice === cpu) result = 'draw'; // Treat draw as lose for daily limit simplicity or give retry? Let's say lose.
+      else if (
+          (choice === 'rock' && cpu === 'scissors') ||
+          (choice === 'paper' && cpu === 'rock') ||
+          (choice === 'scissors' && cpu === 'paper')
+      ) result = 'win';
+
+      if (result === 'win') {
+          const p = getRandomPrize();
+          setPrize(p);
+          setGameState('won');
+          saveWin(p);
+      } else {
+          setGameState('lost');
+          markPlayed();
+      }
+  };
+
+  // --- SCRATCH LOGIC ---
+  const setupScratch = () => {
+      // 3 items. If "Crown" appears, win.
+      // Chance 1/3
+      const isWin = Math.random() < 0.4;
+      let icons = isWin ? ['crown', 'star', 'star'] : ['sad', 'star', 'star'];
+      // Shuffle
+      for (let i = icons.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [icons[i], icons[j]] = [icons[j], icons[i]];
+      }
+      setScratchIcons(icons);
+  };
+
+  const handleScratch = (idx) => {
+      if (scratchRevealed[idx]) return;
+      const newRevealed = [...scratchRevealed];
+      newRevealed[idx] = true;
+      setScratchRevealed(newRevealed);
+
+      // Check if all revealed
+      if (newRevealed.every(r => r)) {
+          if (scratchIcons.includes('crown')) {
+              const p = getRandomPrize();
+              setPrize(p);
+              setGameState('won');
+              saveWin(p);
+          } else {
+              setGameState('lost');
+              markPlayed();
+          }
+      }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white p-6 rounded-3xl w-full max-w-sm relative shadow-2xl animate-in zoom-in duration-200 border-4" style={{ borderColor: theme.colors.primary }}>
+        <button onClick={onClose} className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"><XCircle className="w-8 h-8" /></button>
+        
+        <h3 className="text-2xl font-bold text-center mb-6" style={{ color: theme.colors.textDark }}>
+             {gameType === 'dice' && "🎲 幸運骰子"}
+             {gameType === 'rps' && "✌️ 剪刀石頭布"}
+             {gameType === 'scratch' && "🎫 美味刮刮樂"}
+        </h3>
+
+        {loading ? <div className="text-center py-8"><Loader2 className="animate-spin w-8 h-8 mx-auto" /></div> : (
+          <>
+             {gameState === 'played' && (
+                 <div className="text-center py-8">
+                     <p className="text-xl font-bold text-gray-400">今天已經玩過囉！</p>
+                     <p className="text-gray-500 mt-2">明天再來挑戰吧 😊</p>
+                 </div>
+             )}
+
+             {gameState === 'won' && (
+                 <div className="text-center py-4">
+                     <PartyPopper className="w-16 h-16 mx-auto mb-4 animate-bounce text-yellow-500" />
+                     <p className="text-2xl font-bold text-red-600 mb-2">恭喜中獎！</p>
+                     <p className="text-lg text-gray-700">獲得：<span className="font-bold">{prize}</span></p>
+                     <p className="text-sm text-gray-500 mt-4">已存入「我的獎品匣」</p>
+                 </div>
+             )}
+
+             {gameState === 'lost' && (
+                 <div className="text-center py-8">
+                     <Ghost className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                     <p className="text-xl font-bold text-gray-600">真可惜，沒中獎！</p>
+                     <p className="text-gray-500 mt-2">明天運氣會更好 💪</p>
+                 </div>
+             )}
+
+             {gameState === 'playing' && gameType === 'dice' && (
+                 <div className="text-center">
+                     <div className="flex justify-center gap-4 mb-8">
+                         <div className="w-16 h-16 border-4 rounded-xl flex items-center justify-center text-3xl font-bold bg-gray-50" style={{ borderColor: theme.colors.cardBorder }}>{diceResult[0]}</div>
+                         <div className="w-16 h-16 border-4 rounded-xl flex items-center justify-center text-3xl font-bold bg-gray-50" style={{ borderColor: theme.colors.cardBorder }}>{diceResult[1]}</div>
+                     </div>
+                     <p className="text-sm text-gray-500 mb-4">擲出對子或總和 8 點以上即獲勝！</p>
+                     <button onClick={rollDice} className="w-full py-3 rounded-xl font-bold text-white text-lg active:scale-95 transition-transform" style={{ backgroundColor: theme.colors.primary }}>擲骰子！</button>
+                 </div>
+             )}
+
+             {gameState === 'playing' && gameType === 'rps' && (
+                 <div className="text-center">
+                     <div className="h-24 flex items-center justify-center mb-6">
+                         {rpsCpu ? (
+                             <div className="text-4xl animate-in zoom-in">{rpsCpu === 'rock' ? '✊' : rpsCpu === 'paper' ? '✋' : '✌️'}</div>
+                         ) : (
+                             <div className="text-4xl animate-pulse">❓</div>
+                         )}
+                     </div>
+                     <div className="grid grid-cols-3 gap-2">
+                         <button onClick={() => playRps('rock')} className="aspect-square rounded-xl bg-gray-100 text-3xl hover:bg-gray-200 active:scale-90 transition-transform">✊</button>
+                         <button onClick={() => playRps('paper')} className="aspect-square rounded-xl bg-gray-100 text-3xl hover:bg-gray-200 active:scale-90 transition-transform">✋</button>
+                         <button onClick={() => playRps('scissors')} className="aspect-square rounded-xl bg-gray-100 text-3xl hover:bg-gray-200 active:scale-90 transition-transform">✌️</button>
+                     </div>
+                 </div>
+             )}
+
+             {gameState === 'playing' && gameType === 'scratch' && (
+                 <div className="text-center">
+                     <p className="text-sm text-gray-500 mb-4">刮出 <span className="text-yellow-500 font-bold">👑</span> 皇冠就中獎！</p>
+                     <div className="flex justify-center gap-3">
+                         {scratchRevealed.map((revealed, idx) => (
+                             <div key={idx} onClick={() => handleScratch(idx)} 
+                                  className="w-20 h-20 rounded-full flex items-center justify-center cursor-pointer transition-all relative overflow-hidden"
+                                  style={{ backgroundColor: revealed ? '#FFF' : '#E5E7EB', border: `2px solid ${theme.colors.cardBorder}` }}>
+                                 {revealed ? (
+                                     <span className="text-3xl animate-in zoom-in">
+                                         {scratchIcons[idx] === 'crown' ? '👑' : scratchIcons[idx] === 'sad' ? '😢' : '⭐'}
+                                     </span>
+                                 ) : (
+                                     <div className="absolute inset-0 bg-gray-300 flex items-center justify-center hover:bg-gray-400">
+                                         <Eraser className="w-6 h-6 text-gray-500" />
+                                     </div>
+                                 )}
+                             </div>
+                         ))}
+                     </div>
+                 </div>
+             )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const GameSettings = ({ theme, isDemoMode }) => {
+    const [config, setConfig] = useState({
+        dice: { enabled: false, prizes: [] },
+        rps: { enabled: false, prizes: [] },
+        scratch: { enabled: false, prizes: [] }
+    });
+    const [loading, setLoading] = useState(false);
+    const [msg, setMsg] = useState("");
+
+    useEffect(() => {
+        if(!db && !isDemoMode) return;
+        if(isDemoMode) {
+             setConfig({
+                dice: { enabled: true, prizes: ["折價券10元"] },
+                rps: { enabled: true, prizes: ["小菜一份"] },
+                scratch: { enabled: true, prizes: ["飲料一杯"] }
+            });
+            return;
+        }
+        const fetchConfig = async () => {
+             const docSnap = await getDoc(doc(db, "settings", "minigames"));
+             if(docSnap.exists()) setConfig(docSnap.data() as any);
+        };
+        fetchConfig();
+    }, [isDemoMode]);
+
+    const handleToggle = (game) => {
+        setConfig(prev => ({ ...prev, [game]: { ...prev[game], enabled: !prev[game].enabled } }));
+    };
+
+    const handlePrizeChange = (game, val) => {
+        const list = val.split(',').map(s => s.trim()).filter(s => s);
+        setConfig(prev => ({ ...prev, [game]: { ...prev[game], prizes: list } }));
+    };
+
+    const saveSettings = async () => {
+        setLoading(true);
+        if(isDemoMode) {
+            setMsg("展示模式：設定已儲存");
+            setLoading(false);
+            return;
+        }
+        try {
+            await setDoc(doc(db, "settings", "minigames"), config);
+            setMsg("儲存成功！");
+            setTimeout(()=>setMsg(""), 2000);
+        } catch(e) {
+            console.error(e);
+            setMsg("儲存失敗");
+        }
+        setLoading(false);
+    };
+
+    const games = [
+        { id: 'dice', name: '幸運骰子', icon: Dices },
+        { id: 'rps', name: '剪刀石頭布', icon: Scissors },
+        { id: 'scratch', name: '美味刮刮樂', icon: Eraser },
+    ];
+
+    return (
+        <div className="bg-white p-6 rounded-3xl shadow-sm border mt-6" style={{ borderColor: theme.colors.cardBorder }}>
+            <h3 className="text-xl font-bold mb-4 flex items-center gap-2" style={{ color: theme.colors.textDark }}>
+                <Gamepad2 className="w-6 h-6" style={{ color: theme.colors.primary }} /> 小遊戲設定
+            </h3>
+            <div className="space-y-6">
+                {games.map(g => (
+                    <div key={g.id} className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                        <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2 font-bold text-gray-700">
+                                <g.icon className="w-5 h-5" /> {g.name}
+                            </div>
+                            <button onClick={() => handleToggle(g.id)} 
+                                    className={`px-4 py-1 rounded-full text-sm font-bold transition-colors ${config[g.id]?.enabled ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                                {config[g.id]?.enabled ? "已啟用" : "已停用"}
+                            </button>
+                        </div>
+                        {config[g.id]?.enabled && (
+                            <div>
+                                <label className="text-xs text-gray-500 block mb-1">獎品列表 (用逗號分隔，例如: 折價券, 小菜, 飲料)</label>
+                                <input 
+                                    type="text" 
+                                    defaultValue={config[g.id]?.prizes?.join(', ')} 
+                                    onBlur={(e) => handlePrizeChange(g.id, e.target.value)}
+                                    className="w-full p-2 border rounded-lg text-sm"
+                                    placeholder="輸入獎品..."
+                                />
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
+            {msg && <p className="text-center text-green-600 font-bold mt-2">{msg}</p>}
+            <button onClick={saveSettings} disabled={loading} className="w-full mt-4 py-3 text-white font-bold rounded-xl active:scale-95 transition-transform" style={{ backgroundColor: theme.colors.primary }}>
+                {loading ? "儲存中..." : "儲存遊戲設定"}
+            </button>
+        </div>
+    );
+};
+
 function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 'both' }) {
   const [data, setData] = useState(userData);
   const [myPrizes, setMyPrizes] = useState([]);
@@ -1138,7 +1589,7 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
         setMyPrizes([
             { id: "demo-prize-1", name: "🎁 集點好禮：免費小菜", claimed: true, redeemed: false, winner: { ticketId: "LOYALTY-10PTS-9999" }, expiresAt: { seconds: nextYear.getTime() / 1000, toDate: () => nextYear } },
             { id: "demo-prize-2", name: "🎁 集點好禮：茶香豆干", claimed: true, redeemed: true, redeemedAt: { seconds: Date.now()/1000 }, winner: { ticketId: "LOYALTY-10PTS-8888" } }
-        ]);
+        ] as any);
         return;
     }
 
@@ -1149,12 +1600,12 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
     
     const settingsRef = doc(db, "settings", "loyalty");
     const unsubSettings = onSnapshot(settingsRef, (docSnap) => {
-        if (docSnap.exists()) setLoyaltySettings(docSnap.data());
+        if (docSnap.exists()) setLoyaltySettings(docSnap.data() as any);
     });
 
     const qPrizes = query(collection(db, "prizes"), where("winner.phone", "==", userData.id)); 
     const unsubPrizes = onSnapshot(qPrizes, (snapshot) => {
-      const fetchedPrizes = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const fetchedPrizes = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as any));
       fetchedPrizes.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)); 
       setMyPrizes(fetchedPrizes); 
     });
@@ -1258,6 +1709,9 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
         {!isNone && showLoyalty && (
             <LoyaltyCard points={data.points || 0} redeemedMilestones={data.redeemedMilestones || []} onRedeemClick={openRedeemModal} theme={theme} settings={loyaltySettings} />
         )}
+        
+        {/* Added Mini Games Hub */}
+        <MiniGamesHub theme={theme} userData={data} isDemoMode={isDemoMode} />
 
         {/* Prize Box */}
         {activePrizes.length > 0 && (
@@ -1505,9 +1959,9 @@ function StoreSettings({ theme, isDemoMode, setCurrentThemeId, setEventType, eve
                             className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${activeTheme === t.id ? 'ring-2 ring-offset-2' : 'hover:bg-gray-50'}`}
                             style={{ 
                                 borderColor: activeTheme === t.id ? t.colors.primary : '#E5E7EB',
-                                ringColor: t.colors.primary,
+                                ['--tw-ring-color' as any]: t.colors.primary,
                                 opacity: loading ? 0.5 : 1
-                            }}
+                            } as any}
                         >
                             <div className="w-12 h-12 rounded-full flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: t.colors.primary }}>
                                 <t.icon className="w-6 h-6" />
@@ -1519,6 +1973,8 @@ function StoreSettings({ theme, isDemoMode, setCurrentThemeId, setEventType, eve
                 </div>
                 {msg && <div className="mt-6 p-4 bg-green-50 text-green-700 rounded-xl text-center font-bold animate-in fade-in">{msg}</div>}
             </div>
+
+            <GameSettings theme={theme} isDemoMode={isDemoMode} />
 
             <DataBackupSystem theme={theme} isDemoMode={isDemoMode} />
         </div>
@@ -1536,7 +1992,7 @@ function LoyaltySettings({ theme, isDemoMode }) {
                 const docRef = doc(db, "settings", "loyalty");
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
-                    setRewards(docSnap.data());
+                    setRewards(docSnap.data() as any);
                 }
             };
             fetchSettings();
@@ -1580,7 +2036,7 @@ function LoyaltySettings({ theme, isDemoMode }) {
                             onChange={(e) => setRewards({...rewards, [points]: e.target.value})}
                             placeholder={`例如：免費小菜、便當折價券...`}
                             className="w-full p-3 border rounded-xl outline-none focus:ring-1 text-gray-800"
-                            style={{ borderColor: theme.colors.cardBorder, focusRing: theme.colors.primary }}
+                            style={{ borderColor: theme.colors.cardBorder }}
                         />
                     </div>
                 ))}
@@ -1677,7 +2133,7 @@ function CheckInSystem({ theme, isDemoMode }) {
       <h2 className="font-bold mb-6 text-xl flex items-center gap-2" style={{ color: theme.colors.textDark }}><PlusCircle style={{ color: theme.colors.primary }} /> 快速消費登記</h2>
       <form onSubmit={currentCustomer ? handleSubmit : handleSearch} className="space-y-6">
         <div className="flex gap-3">
-          <input type="tel" value={phone} onChange={(e) => { setPhone(e.target.value); setCurrentCustomer(null); setMsg({ type: "", text: "" }); }} onBlur={handleSearch} placeholder="輸入顧客手機" className="flex-1 p-4 border-2 rounded-xl outline-none text-xl tracking-wider placeholder:tracking-normal bg-gray-50 text-gray-800" style={{ borderColor: theme.colors.cardBorder, focusBorderColor: theme.colors.primary }} inputMode="tel" />
+          <input type="tel" value={phone} onChange={(e) => { setPhone(e.target.value); setCurrentCustomer(null); setMsg({ type: "", text: "" }); }} onBlur={handleSearch} placeholder="輸入顧客手機" className="flex-1 p-4 border-2 rounded-xl outline-none text-xl tracking-wider placeholder:tracking-normal bg-gray-50 text-gray-800" style={{ borderColor: theme.colors.cardBorder }} inputMode="tel" />
           <button type="button" onClick={handleSearch} className="bg-gray-100 px-6 rounded-xl hover:bg-gray-200 border-2 active:bg-gray-300" style={{ borderColor: theme.colors.cardBorder }}><Search className="w-6 h-6 text-gray-600" /></button>
         </div>
 
@@ -1701,7 +2157,7 @@ function CheckInSystem({ theme, isDemoMode }) {
                   type="number" 
                   value={amount} 
                   onChange={(e) => setAmount(e.target.value)} 
-                  onWheel={(e) => e.target.blur()} 
+                  onWheel={(e) => (e.target as HTMLInputElement).blur()} 
                   placeholder="$" 
                   className="w-full p-4 border rounded-xl text-2xl font-bold text-center outline-none h-[60px] text-gray-800" 
                   style={{ borderColor: theme.colors.cardBorder }} 
@@ -1715,7 +2171,7 @@ function CheckInSystem({ theme, isDemoMode }) {
                type="number" 
                value={bentoQty} 
                onChange={(e) => setBentoQty(e.target.value)} 
-               onWheel={(e) => e.target.blur()} 
+               onWheel={(e) => (e.target as HTMLInputElement).blur()} 
                placeholder="0" 
                className="w-full p-4 border rounded-xl text-xl font-bold text-center outline-none h-[60px] text-gray-800" 
                style={{ borderColor: theme.colors.cardBorder }} 
@@ -1785,7 +2241,7 @@ function LotterySystem({ theme, isDemoMode }) {
   const [prizes, setPrizes] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [prizeName, setPrizeName] = useState("");
-  const [prizeQty, setPrizeQty] = useState(1);
+  const [prizeQty, setPrizeQty] = useState<number | string>(1);
   const [winner, setWinner] = useState(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
@@ -1806,7 +2262,7 @@ function LotterySystem({ theme, isDemoMode }) {
         return;
     }
     const unsubC = onSnapshot(customersRef, (s) => {
-      const allCustomers = s.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const allCustomers = s.docs.map((d) => ({ id: d.id, ...d.data() } as any));
       setCustomers(allCustomers);
       let count = 0;
       allCustomers.forEach((c) => {
@@ -1825,7 +2281,7 @@ function LotterySystem({ theme, isDemoMode }) {
   const showMsg = (msg) => { setErrorMsg(msg); setTimeout(() => setErrorMsg(""), 3000); };
 
   const addPrize = async (e) => {
-    e.preventDefault(); if (!prizeName || prizeQty < 1) return; setIsAdding(true);
+    e.preventDefault(); if (!prizeName || Number(prizeQty) < 1) return; setIsAdding(true);
     if (isDemoMode) {
         setPrizes(prev => [...prev, { id: Date.now().toString(), name: prizeName, claimed: false }]);
         setPrizeName(""); setPrizeQty(1); setIsAdding(false);
@@ -1833,7 +2289,7 @@ function LotterySystem({ theme, isDemoMode }) {
     }
     const batch = writeBatch(db);
     try {
-      for (let i = 0; i < prizeQty; i++) { batch.set(doc(prizesRef), { name: prizeName, claimed: false, winner: null, redeemed: false, createdAt: serverTimestamp() }); }
+      for (let i = 0; i < Number(prizeQty); i++) { batch.set(doc(prizesRef), { name: prizeName, claimed: false, winner: null, redeemed: false, createdAt: serverTimestamp() }); }
       await batch.commit(); setPrizeName(""); setPrizeQty(1);
     } catch (err) { showMsg("新增失敗"); } setIsAdding(false);
   };
@@ -1965,8 +2421,8 @@ function LotterySystem({ theme, isDemoMode }) {
       <div className="bg-white p-6 rounded-3xl shadow-sm border" style={{ borderColor: theme.colors.cardBorder }}>
         <h3 className="font-bold mb-4" style={{ color: theme.colors.textDark }}>新增獎品</h3>
         <form onSubmit={addPrize} className="flex flex-col md:flex-row gap-4 items-end bg-gray-50 p-4 rounded-xl border border-gray-200">
-          <div className="flex-1 w-full"><label className="text-sm font-bold text-gray-600 mb-2 block">獎品名稱</label><input type="text" value={prizeName} onChange={(e) => setPrizeName(e.target.value)} placeholder="例：免費餐盒" className="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-1 text-lg bg-white text-gray-800" style={{ focusRing: theme.colors.primary }} /></div>
-          <div className="w-full md:w-32"><label className="text-sm font-bold text-gray-600 mb-2 block">數量</label><input type="number" min="1" max="50" value={prizeQty} onChange={(e) => { const val = e.target.value; setPrizeQty(val === "" ? "" : parseInt(val)); }} className="w-full p-3 border border-gray-300 rounded-lg text-center outline-none focus:ring-1 text-lg bg-white text-gray-800" style={{ focusRing: theme.colors.primary }} /></div>
+          <div className="flex-1 w-full"><label className="text-sm font-bold text-gray-600 mb-2 block">獎品名稱</label><input type="text" value={prizeName} onChange={(e) => setPrizeName(e.target.value)} placeholder="例：免費餐盒" className="w-full p-3 border border-gray-300 rounded-lg outline-none focus:ring-1 text-lg bg-white text-gray-800" style={{ focusRing: theme.colors.primary } as any} /></div>
+          <div className="w-full md:w-32"><label className="text-sm font-bold text-gray-600 mb-2 block">數量</label><input type="number" min="1" max="50" value={prizeQty} onChange={(e) => { const val = e.target.value; setPrizeQty(val === "" ? "" : parseInt(val)); }} className="w-full p-3 border border-gray-300 rounded-lg text-center outline-none focus:ring-1 text-lg bg-white text-gray-800" style={{ focusRing: theme.colors.primary } as any} /></div>
           <button disabled={isAdding} className="w-full md:w-auto text-white px-8 py-3 rounded-xl h-[54px] font-bold active:scale-95 transition-transform" style={{ backgroundColor: theme.colors.primary }}>{isAdding ? "..." : "新增"}</button>
         </form>
       </div>
@@ -2083,7 +2539,7 @@ function DataBackupSystem({ theme, isDemoMode }) {
     const reader = new FileReader();
     reader.onload = async (event) => {
       try {
-        const data = JSON.parse(event.target.result);
+        const data = JSON.parse(event.target.result as string);
         if (!data.customers || !Array.isArray(data.customers)) throw new Error("檔案格式錯誤：找不到顧客資料");
         setStatus(`正在還原 ${data.customers.length} 筆顧客資料...`);
         const customerPromises = data.customers.map(async (c) => { const { id, ...cData } = c; const docId = c.phone || id; if (!docId) return; await setDoc(doc(customersRef, docId), cData, { merge: true }); });
