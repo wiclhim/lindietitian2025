@@ -696,8 +696,18 @@ export default function App() {
   const [currentThemeId, setCurrentThemeId] = useState('christmas');
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [eventType, setEventType] = useState('both'); 
+  
+  // --- 新增：遊戲設定狀態 ---
+  const [gameSettings, setGameSettings] = useState({}); 
 
   const theme = THEMES[currentThemeId] || THEMES.christmas;
+
+  // 計算是否有任何遊戲是開啟的 (Demo模式預設開啟)
+  const hasActiveGames = useMemo(() => {
+      if (isDemoMode) return true;
+      // 檢查是否至少有一個遊戲的 enabled 為 true
+      return Object.values(gameSettings).some(game => game.enabled === true);
+  }, [gameSettings, isDemoMode]);
 
   useEffect(() => {
     let mounted = true;
@@ -752,23 +762,34 @@ export default function App() {
     };
   }, []);
 
+  // --- 修改：同時監聽全域設定與遊戲設定 ---
   useEffect(() => {
-    let unsubSettings = () => {};
+    let unsubGlobal = () => {};
+    let unsubGames = () => {};
+
     if (db && user && !isDemoMode) {
         try {
+            // 監聽一般設定
             const settingsRef = doc(db, "settings", "global");
-            unsubSettings = onSnapshot(settingsRef, (docSnap) => {
+            unsubGlobal = onSnapshot(settingsRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     if (data.activeTheme) setCurrentThemeId(data.activeTheme);
                     if (data.eventType) setEventType(data.eventType);
                 }
-            }, (err) => {
-                console.error("Settings fetch error:", err);
-            });
+            }, (err) => console.error("Global settings error:", err));
+
+            // 監聽遊戲設定 (新增)
+            const gamesRef = doc(db, "settings", "games");
+            unsubGames = onSnapshot(gamesRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    setGameSettings(docSnap.data());
+                }
+            }, (err) => console.error("Game settings error:", err));
+
         } catch(e) { console.log("DB error", e); }
     }
-    return () => unsubSettings();
+    return () => { unsubGlobal(); unsubGames(); };
   }, [user, isDemoMode]);
 
   const handleLogout = () => {
@@ -831,12 +852,13 @@ export default function App() {
         <Header view={view} setView={setView} goToMenu={goToMenu} handleLogout={handleLogout} theme={theme} isDemoMode={isDemoMode} />
         
         <main className="max-w-lg md:max-w-5xl mx-auto p-4 md:p-8 pb-24 md:pb-12 relative z-10">
-            {view === "landing" && <LandingPage setView={setView} goToMenu={goToMenu} theme={theme} eventType={eventType} />}
+            {/* 將 hasActiveGames 傳入 LandingPage 和 CustomerDashboard */}
+            {view === "landing" && <LandingPage setView={setView} goToMenu={goToMenu} theme={theme} eventType={eventType} hasActiveGames={hasActiveGames} />}
             {view === "admin-login" && <AdminLogin setView={setView} theme={theme} isDemoMode={isDemoMode} />}
             {view === "customer-login" && <CustomerLogin setView={setView} setCurrentUserData={setCurrentUserData} theme={theme} isDemoMode={isDemoMode} />}
             {view === "menu-view" && <MenuView goBack={goBackFromMenu} theme={theme} />}
             {view === "admin-dash" && <AdminDashboard user={user} theme={theme} isDemoMode={isDemoMode} setCurrentThemeId={setCurrentThemeId} setEventType={setEventType} eventType={eventType} />}
-            {view === "customer-dash" && <CustomerDashboard userData={currentUserData} goToMenu={goToMenu} theme={theme} isDemoMode={isDemoMode} eventType={eventType} />}
+            {view === "customer-dash" && <CustomerDashboard userData={currentUserData} goToMenu={goToMenu} theme={theme} isDemoMode={isDemoMode} eventType={eventType} hasActiveGames={hasActiveGames} />}
         </main>
         </div>
     </ThemeContext.Provider>
@@ -912,7 +934,8 @@ function MenuView({ goBack, theme }) {
   );
 }
 
-function LandingPage({ setView, goToMenu, theme, eventType = 'both' }) {
+// 注意參數中加入了 hasActiveGames
+function LandingPage({ setView, goToMenu, theme, eventType = 'both', hasActiveGames }) {
   const [clickCount, setClickCount] = useState(0);
   const [showEasterEgg, setShowEasterEgg] = useState(false);
   const handleLogoClick = () => {
@@ -988,11 +1011,13 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both' }) {
 
       <div className="w-full max-w-sm md:max-w-md space-y-4 z-10 relative pt-4">
         
-        {/* --- 新增：首頁的每日挑戰入口按鈕 --- */}
-        <button onClick={() => setView("customer-login")} className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 text-lg md:text-xl transition-all active:scale-95 group animate-in slide-in-from-bottom-2 border-2 border-white/20">
-            <Gamepad2 className="w-7 h-7 animate-bounce" /> 
-            <span>每日挑戰 (贏免費好禮)</span>
-        </button>
+        {/* --- 修改：加入 hasActiveGames 判斷 --- */}
+        {hasActiveGames && (
+            <button onClick={() => setView("customer-login")} className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 text-lg md:text-xl transition-all active:scale-95 group animate-in slide-in-from-bottom-2 border-2 border-white/20">
+                <Gamepad2 className="w-7 h-7 animate-bounce" /> 
+                <span>每日挑戰 (贏免費好禮)</span>
+            </button>
+        )}
         {/* ------------------------------------- */}
 
         <button onClick={goToMenu} className="w-full font-bold py-4 rounded-2xl shadow-lg active:shadow-none active:translate-y-1 flex items-center justify-center gap-3 text-lg md:text-xl transition-all"
@@ -1151,7 +1176,8 @@ function CustomerLogin({ setView, setCurrentUserData, theme, isDemoMode }) {
   );
 }
 
-function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 'both' }) {
+// 注意參數中加入了 hasActiveGames
+function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 'both', hasActiveGames }) {
   const [data, setData] = useState(userData);
   const [myPrizes, setMyPrizes] = useState([]);
   const [confirmRedeemId, setConfirmRedeemId] = useState(null);
@@ -1161,7 +1187,6 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
   const [selectedMilestone, setSelectedMilestone] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // --- 新增：控制遊戲中心顯示的狀態 ---
   const [showGameCenter, setShowGameCenter] = useState(false);
 
   const showLottery = eventType === 'lottery' || eventType === 'both';
@@ -1281,11 +1306,9 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
         prizeName={loyaltySettings[selectedMilestone] || theme.milestoneText} milestone={selectedMilestone} isProcessing={isProcessing} theme={theme}
       />
 
-      {/* --- 新增：遊戲中心彈窗 --- */}
       {showGameCenter && <GameCenter userData={userData} theme={theme} isDemoMode={isDemoMode} onClose={() => setShowGameCenter(false)} />}
 
       <div className="space-y-6">
-        {/* 會員卡片 */}
         <div className="p-6 md:p-8 rounded-3xl shadow-2xl relative overflow-hidden border-2 min-h-[220px] flex flex-col justify-between transform transition hover:scale-[1.01]"
              style={{ background: `linear-gradient(to bottom right, ${theme.colors.primary}, ${theme.colors.textDark})`, borderColor: theme.colors.accent }}>
           <div className="absolute top-0 right-0 opacity-10 transform translate-x-10 -translate-y-10"><theme.icon className="w-48 h-48 text-white" /></div>
@@ -1298,12 +1321,10 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
           </div>
         </div>
 
-        {/* 集點卡 */}
         {!isNone && showLoyalty && (
             <LoyaltyCard points={data.points || 0} redeemedMilestones={data.redeemedMilestones || []} onRedeemClick={openRedeemModal} theme={theme} settings={loyaltySettings} />
         )}
 
-        {/* 獎品匣 */}
         {activePrizes.length > 0 && (
           <div className="bg-white p-6 rounded-2xl shadow-md border-l-8 animate-in slide-in-from-bottom-2" style={{ borderColor: theme.colors.accent }}>
             <h3 className="font-bold mb-4 flex items-center gap-2 text-lg border-b pb-2" style={{ color: theme.colors.textDark, borderColor: theme.colors.cardBorder }}><Gift className="w-6 h-6" style={{ color: theme.colors.primary }} /> 我的獎品匣</h3>
@@ -1346,7 +1367,6 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
           </div>
         )}
 
-        {/* 摸彩券進度條 */}
         {!isNone && showLottery && (
             <div className="bg-white p-6 rounded-2xl shadow-md border-l-8 flex flex-col gap-3" style={{ borderColor: theme.colors.secondary }}>
               <div className="flex justify-between items-center border-b border-dashed border-gray-200 pb-3"><span className="font-medium text-gray-600">總獲得券數</span><div className="flex items-center gap-2 text-2xl font-bold" style={{ color: theme.colors.secondary }}><Ticket className="w-6 h-6" /> {totalTickets} <span className="text-base font-normal text-gray-400">張</span></div></div>
@@ -1355,7 +1375,6 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
             </div>
         )}
 
-        {/* 摸彩券列表 */}
         {!isNone && showLottery && (
             <div className="bg-white p-6 rounded-2xl shadow-sm border" style={{ borderColor: theme.colors.cardBorder }}>
               <h3 className="font-bold mb-4 flex items-center gap-2 text-lg" style={{ color: theme.colors.textDark }}><Ticket className="w-6 h-6" style={{ color: theme.colors.primary }} /> 我的摸彩券</h3>
@@ -1382,12 +1401,14 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
       </div>
 
       <div className="space-y-6">
-        {/* --- 新增：每日挑戰按鈕區塊 (放在右側最上方) --- */}
+        {/* --- 修改：加入 hasActiveGames 判斷 --- */}
         <div className="space-y-4">
-            <button onClick={() => setShowGameCenter(true)} className="w-full text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 animate-in slide-in-from-left-2 group">
-                <Gamepad2 className="w-6 h-6 animate-bounce" /> 
-                <span className="text-lg group-hover:scale-105 transition-transform">每日挑戰 (贏免費好禮)</span>
-            </button>
+            {hasActiveGames && (
+                <button onClick={() => setShowGameCenter(true)} className="w-full text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 animate-in slide-in-from-left-2 group">
+                    <Gamepad2 className="w-6 h-6 animate-bounce" /> 
+                    <span className="text-lg group-hover:scale-105 transition-transform">每日挑戰 (贏免費好禮)</span>
+                </button>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
                 <button onClick={openLine} className="text-white font-bold py-6 rounded-2xl shadow-lg active:shadow-none active:translate-y-1 flex flex-col items-center justify-center gap-2 transition-all group" style={{ backgroundColor: theme.colors.success }}>
@@ -1398,6 +1419,7 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
                 </button>
             </div>
         </div>
+        {/* ------------------------------------- */}
 
         {/* 累積點數說明 */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border" style={{ borderColor: theme.colors.cardBorder }}>
@@ -1426,7 +1448,6 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
     </div>
   );
 }
-
 
 function AdminDashboard({ user, theme, isDemoMode, setCurrentThemeId, setEventType, eventType }) {
   const [activeTab, setActiveTab] = useState("checkin");
