@@ -668,16 +668,17 @@ const LoyaltyCard = ({ points = 0, redeemedMilestones = [], onRedeemClick, theme
                       )}
                    </div>
                    
-                   {isMilestone && (
-                      <div className="text-[9px] md:text-xs font-bold px-1 rounded whitespace-nowrap"
-                           style={{ 
-                               color: isRedeemed ? 'gray' : theme.colors.textDark, 
-                               backgroundColor: canRedeem ? theme.colors.accent : 'transparent' 
-                           }}>
-                         {isRedeemed ? "已領取" : canRedeem ? "點我兌換" : settings[num] || theme.milestoneText}
-                      </div>
-                   )}
-                </div>
+{isMilestone && (
+  <div className="text-[9px] md:text-xs font-bold px-1 rounded whitespace-nowrap"
+       style={{ 
+           color: isRedeemed ? 'gray' : theme.colors.textDark, 
+           backgroundColor: canRedeem ? theme.colors.accent : 'transparent' 
+       }}>
+     {/* 修改：移除 "點我兌換" 的強制顯示，改為直接顯示設定的獎品名稱 */}
+     {isRedeemed ? "已領取" : settings[num] || theme.milestoneText}
+  </div>
+)}  
+              </div>
              );
           })}
        </div>
