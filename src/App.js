@@ -985,7 +985,6 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both' }) {
       {!isNone && showLottery && <WinnersList theme={theme} />}
       
       {!isNone && showLoyalty && <LoyaltyPromoCard theme={theme} />}
-</div>
     </div>
   );
 }
