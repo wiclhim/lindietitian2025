@@ -67,7 +67,11 @@ import {
   Layers,
   Coffee,
   Trophy,
-  UserCheck
+  UserCheck,
+  Gamepad2,
+  Dices,
+  Scissors,
+  Eraser
 } from "lucide-react";
 
 // --- Firebase Initialization ---
@@ -981,59 +985,47 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both' }) {
       {!isNone && showLottery && <WinnersList theme={theme} />}
       
       {!isNone && showLoyalty && <LoyaltyPromoCard theme={theme} />}
-
-      <div className="w-full max-w-sm md:max-w-md space-y-4 z-10 relative pt-4">
-        <button onClick={goToMenu} className="w-full font-bold py-4 rounded-2xl shadow-lg active:shadow-none active:translate-y-1 flex items-center justify-center gap-3 text-lg md:text-xl transition-all"
-                style={{ backgroundColor: theme.colors.accent, color: theme.colors.textDark }}>
-          <Utensils className="w-6 h-6" /> 查看美味菜單
-        </button>
-        <button onClick={() => setView("customer-login")} className="w-full bg-white border-2 font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 text-lg md:text-xl transition-all active:scale-95 group hover:brightness-95"
-                style={{ borderColor: theme.colors.primary, color: theme.colors.primary }}>
-          <User className="w-6 h-6 group-hover:scale-110 transition-transform" /> 我是顧客 (查詢/註冊)
-        </button>
-        <button onClick={() => setView("admin-login")} className="w-full backdrop-blur-sm border border-white/30 text-white hover:bg-white/10 font-bold py-4 rounded-2xl shadow-lg active:shadow-none active:translate-y-1 flex items-center justify-center gap-3 text-lg md:text-xl transition-all">
-          <Lock className="w-6 h-6" style={{ color: theme.colors.accent }} /> 店長登入 (後台)
-        </button>
-      </div>
-
-      <div className="mt-8 w-full max-w-md bg-black/40 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-white/20 text-center space-y-3 z-10 relative text-white">
-        <h3 className="font-bold border-b border-white/20 pb-2 mb-2 flex items-center justify-center gap-2" style={{ color: theme.colors.accent }}>
-            <Store className="w-4 h-4" /> 店家資訊
-        </h3>
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-center gap-2">
-            <Phone className="w-5 h-5 flex-shrink-0" style={{ color: theme.colors.accent }} /> 
-            <span className="font-medium text-white/80">餐盒訂購專線：</span> 
-            <a href="tel:0903282278" className="font-bold hover:text-white transition-colors border-b border-dashed" style={{ color: theme.colors.accent }}>0903-282278</a>
-          </div>
-          <div className="flex items-start justify-center gap-2">
-            <MapPin className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: theme.colors.success }} />
-            <div className="text-left"><span className="font-medium text-white/80">地址：</span> <a href="https://www.google.com/maps/search/?api=1&query=台中市北區文心路四段198-1號" target="_blank" rel="noreferrer" className="hover:text-white transition-colors" style={{ color: theme.colors.accent }}>台中市北區文心路四段198-1號</a></div>
-          </div>
-        </div>
-      </div>
+</div>
     </div>
   );
 }
 
 function AdminLogin({ setView, theme, isDemoMode }) {
   const [pin, setPin] = useState("");
-  const [error, setError] = useState("");
+  const [msg, setMsg] = useState("");
+
   const handleLogin = (e) => {
     e.preventDefault();
-    if (pin === ADMIN_PIN) setView("admin-dash");
-    else { setError("密碼錯誤"); setPin(""); }
+    if (pin === ADMIN_PIN) {
+      setView("admin-dash");
+    } else {
+      setMsg("密碼錯誤");
+      setPin("");
+    }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-8 bg-white rounded-3xl shadow-xl border-2" style={{ borderColor: theme.colors.cardBorder }}>
-      <h2 className="text-2xl font-bold text-center mb-8 flex justify-center items-center gap-2" style={{ color: theme.colors.textDark }}>
-        <Lock className="w-6 h-6" style={{ color: theme.colors.accent }} /> 店長驗證 {isDemoMode && "(Demo)"}
-      </h2>
-      <form onSubmit={handleLogin} className="space-y-6">
-        <div><label className="block text-base font-medium mb-2 text-gray-600">管理密碼</label><input type="password" value={pin} onChange={(e) => setPin(e.target.value)} className="w-full p-4 border-2 rounded-xl text-center text-3xl tracking-[0.5em] focus:ring-1 outline-none transition-colors placeholder:tracking-normal text-gray-700" style={{ borderColor: theme.colors.cardBorder }} placeholder="請輸入密碼" inputMode="numeric" autoFocus /></div>
-        {error && <p className="text-center font-bold bg-red-50 p-2 rounded-lg text-red-600">{error}</p>}
-        <button className="w-full text-white font-bold py-4 rounded-xl shadow-md active:scale-95 transition-transform text-lg" style={{ backgroundColor: theme.colors.primary }}>進入後台</button>
+    <div className="max-w-sm mx-auto mt-10 bg-white p-8 rounded-3xl shadow-xl border-t-8 animate-in fade-in slide-in-from-bottom-4" style={{ borderColor: theme.colors.primary }}>
+      <h2 className="text-2xl font-bold text-center mb-6" style={{ color: theme.colors.textDark }}>店長管理登入</h2>
+      <form onSubmit={handleLogin} className="space-y-4">
+        <input 
+          type="password" 
+          value={pin} 
+          onChange={(e) => setPin(e.target.value)} 
+          placeholder="請輸入管理密碼" 
+          className="w-full p-4 border rounded-xl text-center text-xl tracking-widest outline-none focus:ring-2"
+          style={{ focusRing: theme.colors.primary }}
+          inputMode="numeric"
+          autoFocus
+        />
+        {msg && <p className="text-red-500 text-center font-bold bg-red-50 p-2 rounded-lg">{msg}</p>}
+        <button className="w-full text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-transform"
+          style={{ backgroundColor: theme.colors.primary }}>
+          登入系統
+        </button>
+        <button type="button" onClick={() => setView("landing")} className="w-full text-gray-400 text-sm hover:text-gray-600 underline">
+          返回首頁
+        </button>
       </form>
     </div>
   );
@@ -1044,17 +1036,23 @@ function CustomerLogin({ setView, setCurrentUserData, theme, isDemoMode }) {
   const [pin, setPin] = useState("");
   const [name, setName] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
-  
+  const [loading, setLoading] = useState(false);
   const customersRef = collection(db, "customers");
 
   const handleLogin = async (e) => {
-    e.preventDefault(); setLoading(true); setMsg("");
+    e.preventDefault();
+    setLoading(true);
+    if (!phone || !pin) return;
+    
     if (isDemoMode) {
-        setTimeout(() => {
-            setCurrentUserData({ id: phone || "0912345678", phone: phone || "0912345678", name: "測試顧客", pin: "0000", totalSpent: 4500, points: 12, history: [], redeemedMilestones: [10] });
-            setView("customer-dash");
+         setTimeout(() => {
+            if ((phone === '0912345678' && pin === '0000') || (phone === '0987654321' && pin === '1234')) {
+                 setCurrentUserData({ id: phone, phone, name: phone==='0912345678'?'王小明':'陳美麗', totalSpent: phone==='0912345678'?3200:150, points: phone==='0912345678'?5:0, history: [], redeemedMilestones: [] });
+                 setView("customer-dash");
+            } else {
+                setMsg("展示模式：帳號或密碼錯誤 (試試 0912345678 / 0000)");
+            }
             setLoading(false);
         }, 500);
         return;
@@ -1125,6 +1123,9 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
   const [selectedMilestone, setSelectedMilestone] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // --- 新增：控制遊戲中心顯示的狀態 ---
+  const [showGameCenter, setShowGameCenter] = useState(false);
+
   const showLottery = eventType === 'lottery' || eventType === 'both';
   const showLoyalty = eventType === 'loyalty' || eventType === 'both';
   const isNone = eventType === 'none';
@@ -1134,7 +1135,7 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
     
     if (isDemoMode) {
         const nextYear = new Date();
-        nextYear.setMonth(nextYear.getMonth() + 6); // Set demo prize expiration to 6 months
+        nextYear.setMonth(nextYear.getMonth() + 6);
         setMyPrizes([
             { id: "demo-prize-1", name: "🎁 集點好禮：免費小菜", claimed: true, redeemed: false, winner: { ticketId: "LOYALTY-10PTS-9999" }, expiresAt: { seconds: nextYear.getTime() / 1000, toDate: () => nextYear } },
             { id: "demo-prize-2", name: "🎁 集點好禮：茶香豆干", claimed: true, redeemed: true, redeemedAt: { seconds: Date.now()/1000 }, winner: { ticketId: "LOYALTY-10PTS-8888" } }
@@ -1198,7 +1199,7 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
       const customerRef = doc(db, "customers", data.id);
       
       const expiresAt = new Date();
-      expiresAt.setMonth(expiresAt.getMonth() + 6); // Set expiration to 6 months
+      expiresAt.setMonth(expiresAt.getMonth() + 6);
 
       try {
           const batch = writeBatch(db);
@@ -1242,7 +1243,11 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
         prizeName={loyaltySettings[selectedMilestone] || theme.milestoneText} milestone={selectedMilestone} isProcessing={isProcessing} theme={theme}
       />
 
+      {/* --- 新增：遊戲中心彈窗 --- */}
+      {showGameCenter && <GameCenter userData={userData} theme={theme} isDemoMode={isDemoMode} onClose={() => setShowGameCenter(false)} />}
+
       <div className="space-y-6">
+        {/* 會員卡片 */}
         <div className="p-6 md:p-8 rounded-3xl shadow-2xl relative overflow-hidden border-2 min-h-[220px] flex flex-col justify-between transform transition hover:scale-[1.01]"
              style={{ background: `linear-gradient(to bottom right, ${theme.colors.primary}, ${theme.colors.textDark})`, borderColor: theme.colors.accent }}>
           <div className="absolute top-0 right-0 opacity-10 transform translate-x-10 -translate-y-10"><theme.icon className="w-48 h-48 text-white" /></div>
@@ -1255,11 +1260,12 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
           </div>
         </div>
 
+        {/* 集點卡 */}
         {!isNone && showLoyalty && (
             <LoyaltyCard points={data.points || 0} redeemedMilestones={data.redeemedMilestones || []} onRedeemClick={openRedeemModal} theme={theme} settings={loyaltySettings} />
         )}
 
-        {/* Prize Box */}
+        {/* 獎品匣 */}
         {activePrizes.length > 0 && (
           <div className="bg-white p-6 rounded-2xl shadow-md border-l-8 animate-in slide-in-from-bottom-2" style={{ borderColor: theme.colors.accent }}>
             <h3 className="font-bold mb-4 flex items-center gap-2 text-lg border-b pb-2" style={{ color: theme.colors.textDark, borderColor: theme.colors.cardBorder }}><Gift className="w-6 h-6" style={{ color: theme.colors.primary }} /> 我的獎品匣</h3>
@@ -1302,6 +1308,7 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
           </div>
         )}
 
+        {/* 摸彩券進度條 */}
         {!isNone && showLottery && (
             <div className="bg-white p-6 rounded-2xl shadow-md border-l-8 flex flex-col gap-3" style={{ borderColor: theme.colors.secondary }}>
               <div className="flex justify-between items-center border-b border-dashed border-gray-200 pb-3"><span className="font-medium text-gray-600">總獲得券數</span><div className="flex items-center gap-2 text-2xl font-bold" style={{ color: theme.colors.secondary }}><Ticket className="w-6 h-6" /> {totalTickets} <span className="text-base font-normal text-gray-400">張</span></div></div>
@@ -1310,6 +1317,7 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
             </div>
         )}
 
+        {/* 摸彩券列表 */}
         {!isNone && showLottery && (
             <div className="bg-white p-6 rounded-2xl shadow-sm border" style={{ borderColor: theme.colors.cardBorder }}>
               <h3 className="font-bold mb-4 flex items-center gap-2 text-lg" style={{ color: theme.colors.textDark }}><Ticket className="w-6 h-6" style={{ color: theme.colors.primary }} /> 我的摸彩券</h3>
@@ -1336,18 +1344,30 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
       </div>
 
       <div className="space-y-6">
-        <div className="grid grid-cols-2 gap-4">
-          <button onClick={openLine} className="text-white font-bold py-6 rounded-2xl shadow-lg active:shadow-none active:translate-y-1 flex flex-col items-center justify-center gap-2 transition-all group" style={{ backgroundColor: theme.colors.success }}>
-            <div className="bg-white/20 p-3 rounded-full group-hover:scale-110 transition-transform"><MessageCircle className="w-8 h-8 text-white" /></div><span className="text-lg">通知登記</span>
-          </button>
-          <button onClick={goToMenu} className="text-white font-bold py-6 rounded-2xl shadow-lg active:shadow-none active:translate-y-1 flex flex-col items-center justify-center gap-2 transition-all group" style={{ backgroundColor: theme.colors.secondary }}>
-            <div className="bg-white/20 p-3 rounded-full group-hover:scale-110 transition-transform"><Utensils className="w-8 h-8 text-white" /></div><span className="text-lg">查看菜單</span>
-          </button>
+        {/* --- 新增：每日挑戰按鈕區塊 (放在右側最上方) --- */}
+        <div className="space-y-4">
+            <button onClick={() => setShowGameCenter(true)} className="w-full text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 animate-in slide-in-from-left-2 group">
+                <Gamepad2 className="w-6 h-6 animate-bounce" /> 
+                <span className="text-lg group-hover:scale-105 transition-transform">每日挑戰 (贏免費好禮)</span>
+            </button>
+
+            <div className="grid grid-cols-2 gap-4">
+                <button onClick={openLine} className="text-white font-bold py-6 rounded-2xl shadow-lg active:shadow-none active:translate-y-1 flex flex-col items-center justify-center gap-2 transition-all group" style={{ backgroundColor: theme.colors.success }}>
+                    <div className="bg-white/20 p-3 rounded-full group-hover:scale-110 transition-transform"><MessageCircle className="w-8 h-8 text-white" /></div><span className="text-lg">通知登記</span>
+                </button>
+                <button onClick={goToMenu} className="text-white font-bold py-6 rounded-2xl shadow-lg active:shadow-none active:translate-y-1 flex flex-col items-center justify-center gap-2 transition-all group" style={{ backgroundColor: theme.colors.secondary }}>
+                    <div className="bg-white/20 p-3 rounded-full group-hover:scale-110 transition-transform"><Utensils className="w-8 h-8 text-white" /></div><span className="text-lg">查看菜單</span>
+                </button>
+            </div>
         </div>
+
+        {/* 累積點數說明 */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border" style={{ borderColor: theme.colors.cardBorder }}>
           <h3 className="font-bold mb-4 flex items-center gap-2 text-lg" style={{ color: theme.colors.textDark }}><PlusCircle className="w-6 h-6" style={{ color: theme.colors.success }} /> 如何累積點數？</h3>
           <p className="text-gray-700 text-base leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100">每次消費後，請點擊上方<strong style={{ color: theme.colors.success }}>「通知登記」</strong>按鈕，私訊店長您的消費金額或收據照片，確認後店長會為您更新點數！</p>
         </div>
+
+        {/* 消費紀錄 */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border flex-1" style={{ borderColor: theme.colors.cardBorder }}>
           <h3 className="font-bold mb-4 border-b border-gray-100 pb-2 text-lg" style={{ color: theme.colors.textDark }}>最近消費紀錄</h3>
           <div className="space-y-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
@@ -1369,6 +1389,7 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
   );
 }
 
+
 function AdminDashboard({ user, theme, isDemoMode, setCurrentThemeId, setEventType, eventType }) {
   const [activeTab, setActiveTab] = useState("checkin");
   return (
@@ -1379,6 +1400,7 @@ function AdminDashboard({ user, theme, isDemoMode, setCurrentThemeId, setEventTy
         <AdminTab label="集點設定" icon={<Edit3 className="w-5 h-5" />} active={activeTab === "loyalty"} onClick={() => setActiveTab("loyalty")} theme={theme} />
         <AdminTab label="節慶抽獎" icon={<PartyPopper className="w-5 h-5" />} active={activeTab === "lottery"} onClick={() => setActiveTab("lottery")} theme={theme} />
         <AdminTab label="商店設定" icon={<Settings className="w-5 h-5" />} active={activeTab === "settings"} onClick={() => setActiveTab("settings")} theme={theme} />
+        <AdminTab label="遊戲設定" icon={<Gamepad2 className="w-5 h-5" />} active={activeTab === "games"} onClick={() => setActiveTab("games")} theme={theme} />
       </div>
       <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
         {activeTab === "checkin" && <CheckInSystem theme={theme} isDemoMode={isDemoMode} />}
@@ -1386,6 +1408,7 @@ function AdminDashboard({ user, theme, isDemoMode, setCurrentThemeId, setEventTy
         {activeTab === "loyalty" && <LoyaltySettings theme={theme} isDemoMode={isDemoMode} />}
         {activeTab === "lottery" && <LotterySystem theme={theme} isDemoMode={isDemoMode} />}
         {activeTab === "settings" && <StoreSettings theme={theme} isDemoMode={isDemoMode} setCurrentThemeId={setCurrentThemeId} setEventType={setEventType} eventType={eventType} />}
+        {activeTab === "games" && <GameSettings theme={theme} isDemoMode={isDemoMode} />}
       </div>
     </div>
   );
@@ -2246,3 +2269,352 @@ function DataBackupSystem({ theme, isDemoMode }) {
     </div>
   );
 }
+// --- 🎮 遊戲中心擴充模組 Start ---
+
+// 輔助函式：檢查是否為同一天
+const isSameDay = (timestamp) => {
+  if (!timestamp) return false;
+  const date = timestamp.seconds ? new Date(timestamp.seconds * 1000) : new Date(timestamp);
+  const now = new Date();
+  return date.getFullYear() === now.getFullYear() &&
+         date.getMonth() === now.getMonth() &&
+         date.getDate() === now.getDate();
+};
+
+// 輔助函式：從設定字串隨機抽取獎品
+const getRandomPrize = (prizeString) => {
+  if (!prizeString) return "神秘小禮物";
+  const prizes = prizeString.split(/[,，]/).map(p => p.trim()).filter(p => p); // 支援中英文逗號
+  if (prizes.length === 0) return "神秘小禮物";
+  return prizes[Math.floor(Math.random() * prizes.length)];
+};
+
+const GameSettings = ({ theme, isDemoMode }) => {
+    const [settings, setSettings] = useState({
+        dice: { enabled: false, prizes: "免費荷包蛋,折價券5元" },
+        rps: { enabled: false, prizes: "免費飲料,折價券10元" },
+        scratch: { enabled: false, prizes: "半價券,大雞腿乙支" }
+    });
+    const [msg, setMsg] = useState("");
+
+    useEffect(() => {
+        if (!isDemoMode && db) {
+            getDoc(doc(db, "settings", "games")).then(snap => {
+                if (snap.exists()) setSettings(snap.data());
+            });
+        }
+    }, [isDemoMode]);
+
+    const handleSave = async () => {
+        if (isDemoMode) { setMsg("展示模式：儲存成功"); return; }
+        try {
+            await setDoc(doc(db, "settings", "games"), settings);
+            setMsg("遊戲設定已更新！");
+            setTimeout(() => setMsg(""), 3000);
+        } catch (e) { setMsg("儲存失敗"); }
+    };
+
+    const toggleGame = (game, field, val) => {
+        setSettings(prev => ({ ...prev, [game]: { ...prev[game], [field]: val } }));
+    };
+
+    return (
+        <div className="bg-white p-6 rounded-3xl border shadow-sm max-w-2xl mx-auto" style={{ borderColor: theme.colors.cardBorder }}>
+            <h3 className="text-xl font-bold mb-4 flex items-center gap-2" style={{ color: theme.colors.textDark }}>
+                <Gamepad2 className="w-6 h-6" style={{ color: theme.colors.primary }} /> 每日挑戰設定
+            </h3>
+            <div className="space-y-6">
+                {[
+                    { id: 'dice', name: '🎲 骰子比大小', icon: Dices },
+                    { id: 'rps', name: '✌️ 剪刀石頭布', icon: Scissors },
+                    { id: 'scratch', name: '🎫 美味刮刮樂', icon: Eraser }
+                ].map(g => (
+                    <div key={g.id} className="p-4 rounded-xl border-2 bg-gray-50" style={{ borderColor: settings[g.id]?.enabled ? theme.colors.success : '#E5E7EB' }}>
+                        <div className="flex justify-between items-center mb-3">
+                            <h4 className="font-bold flex items-center gap-2 text-lg">
+                                <g.icon className="w-5 h-5" /> {g.name}
+                            </h4>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" className="sr-only peer" checked={settings[g.id]?.enabled || false} 
+                                    onChange={(e) => toggleGame(g.id, 'enabled', e.target.checked)} />
+                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                            </label>
+                        </div>
+                        {settings[g.id]?.enabled && (
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 mb-1 block">獎品池 (用逗號分隔多個獎項)</label>
+                                <input type="text" value={settings[g.id]?.prizes || ""} 
+                                    onChange={(e) => toggleGame(g.id, 'prizes', e.target.value)}
+                                    className="w-full p-2 border rounded-lg" placeholder="例如：滷蛋,5元折價券,紅茶" />
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
+            {msg && <div className="text-center mt-4 font-bold text-green-600">{msg}</div>}
+            <button onClick={handleSave} className="w-full mt-6 text-white font-bold py-3 rounded-xl shadow-md" style={{ backgroundColor: theme.colors.primary }}>儲存設定</button>
+        </div>
+    );
+};
+
+const GameCenter = ({ userData, theme, isDemoMode, onClose }) => {
+    const [gameSettings, setGameSettings] = useState(null);
+    const [activeGame, setActiveGame] = useState(null); // 'dice', 'rps', 'scratch'
+    const [playedStatus, setPlayedStatus] = useState({});
+
+    useEffect(() => {
+        if (isDemoMode) {
+            setGameSettings({
+                dice: { enabled: true, prizes: "免費滷蛋" },
+                rps: { enabled: true, prizes: "折價券" },
+                scratch: { enabled: true, prizes: "大獎" }
+            });
+            return;
+        }
+        if (db) {
+            getDoc(doc(db, "settings", "games")).then(s => s.exists() && setGameSettings(s.data()));
+        }
+        // 檢查 user 上次遊玩紀錄
+        if (userData && userData.gamesLastPlayed) {
+            setPlayedStatus(userData.gamesLastPlayed);
+        }
+    }, [isDemoMode, userData]);
+
+    const handleGameEnd = async (gameId, isWin, prizeName) => {
+        if (!userData?.id) return;
+        const now = new Date();
+        
+        // 更新本地狀態以即時顯示
+        setPlayedStatus(prev => ({ ...prev, [gameId]: { seconds: now.getTime() / 1000 } }));
+
+        if (isDemoMode) {
+            if(isWin) alert(`(Demo) 恭喜獲得：${prizeName}`);
+            setActiveGame(null);
+            return;
+        }
+
+        const batch = writeBatch(db);
+        const userRef = doc(db, "customers", userData.id);
+        
+        // 1. 更新最後遊玩時間
+        batch.set(userRef, { 
+            gamesLastPlayed: { ...playedStatus, [gameId]: serverTimestamp() } 
+        }, { merge: true });
+
+        // 2. 如果贏了，發送獎品
+        if (isWin) {
+            const newPrizeRef = doc(collection(db, "prizes"));
+            const expiresAt = new Date();
+            expiresAt.setMonth(expiresAt.getMonth() + 1); // 遊戲獎品期限1個月
+            
+            batch.set(newPrizeRef, {
+                name: `🎮 挑戰禮：${prizeName}`,
+                claimed: true, redeemed: false,
+                winner: { name: userData.name, phone: userData.phone, ticketId: `GAME-${gameId.toUpperCase()}-${Date.now().toString().slice(-4)}` },
+                type: 'game_reward',
+                createdAt: serverTimestamp(),
+                expiresAt: expiresAt
+            });
+        }
+        await batch.commit();
+        if(isWin) alert(`🎉 太棒了！獲得「${prizeName}」\n請至「我的獎品匣」查看。`);
+        setActiveGame(null);
+    };
+
+    if (activeGame) {
+        const commonProps = { 
+            onEnd: (isWin) => handleGameEnd(activeGame, isWin, getRandomPrize(gameSettings[activeGame]?.prizes)), 
+            onClose: () => setActiveGame(null), 
+            theme 
+        };
+        if (activeGame === 'dice') return <DiceGame {...commonProps} />;
+        if (activeGame === 'rps') return <RPSGame {...commonProps} />;
+        if (activeGame === 'scratch') return <ScratchGame {...commonProps} />;
+    }
+
+    if (!gameSettings) return <div className="p-8 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto"/></div>;
+
+    const games = [
+        { id: 'dice', name: '骰子比大小', desc: '點數大於店長就贏！', icon: Dices, color: '#3B82F6' },
+        { id: 'rps', name: '剪刀石頭布', desc: '經典對決，贏了拿獎！', icon: Scissors, color: '#EAB308' },
+        { id: 'scratch', name: '美味刮刮樂', desc: '刮出三個相同圖案！', icon: Eraser, color: '#EC4899' }
+    ];
+
+    return (
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white w-full max-w-lg rounded-3xl p-6 relative animate-in zoom-in duration-300">
+                <button onClick={onClose} className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full"><XCircle className="w-8 h-8 text-gray-400" /></button>
+                
+                <h2 className="text-2xl font-bold text-center mb-2 flex items-center justify-center gap-2">
+                    <Gamepad2 className="w-8 h-8" style={{ color: theme.colors.primary }} /> 每日挑戰
+                </h2>
+                <p className="text-center text-gray-500 mb-6 text-sm">每天每種遊戲限玩一次，贏了馬上領獎！</p>
+
+                <div className="space-y-4">
+                    {games.map(g => {
+                        if (!gameSettings[g.id]?.enabled) return null;
+                        const isPlayed = isSameDay(playedStatus[g.id]);
+                        
+                        return (
+                            <button key={g.id} disabled={isPlayed} onClick={() => setActiveGame(g.id)}
+                                className={`w-full p-4 rounded-2xl border-2 flex items-center gap-4 transition-all relative overflow-hidden group ${isPlayed ? 'opacity-60 grayscale bg-gray-50 cursor-not-allowed' : 'hover:scale-[1.02] hover:shadow-md bg-white'}`}
+                                style={{ borderColor: isPlayed ? '#E5E7EB' : g.color }}>
+                                <div className={`p-3 rounded-full text-white shadow-sm`} style={{ backgroundColor: isPlayed ? '#9CA3AF' : g.color }}>
+                                    <g.icon className="w-6 h-6" />
+                                </div>
+                                <div className="text-left flex-1">
+                                    <h3 className="font-bold text-lg text-gray-800">{g.name}</h3>
+                                    <p className="text-xs text-gray-500">{isPlayed ? "明日再來挑戰！" : g.desc}</p>
+                                </div>
+                                {isPlayed ? <CheckCircle2 className="w-6 h-6 text-gray-400" /> : <div className="bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">GO!</div>}
+                            </button>
+                        );
+                    })}
+                    {Object.values(gameSettings).every(s => !s.enabled) && (
+                        <div className="text-center py-8 text-gray-400">目前沒有開放的活動，敬請期待！</div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// --- 小遊戲組件 ---
+const DiceGame = ({ onEnd, onClose, theme }) => {
+    const [pScore, setPScore] = useState(0);
+    const [hScore, setHScore] = useState(0);
+    const [stage, setStage] = useState('ready'); // ready, rolling, result
+
+    const roll = () => {
+        setStage('rolling');
+        let count = 0;
+        const interval = setInterval(() => {
+            setPScore(Math.ceil(Math.random() * 6));
+            setHScore(Math.ceil(Math.random() * 6));
+            count++;
+            if (count > 10) {
+                clearInterval(interval);
+                const finalP = Math.ceil(Math.random() * 6);
+                const finalH = Math.ceil(Math.random() * 6); // 店長稍微強一點? 不，公平隨機
+                setPScore(finalP); setHScore(finalH);
+                setStage('result');
+                setTimeout(() => onEnd(finalP > finalH), 1500); // 贏的條件：玩家 > 店長
+            }
+        }, 100);
+    };
+
+    return (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80">
+            <div className="bg-white p-8 rounded-3xl w-80 text-center animate-in zoom-in">
+                <h3 className="text-2xl font-bold mb-8">🎲 骰子比大小</h3>
+                <div className="flex justify-around mb-8">
+                    <div><p className="mb-2 text-gray-500 text-sm">你</p><div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center text-4xl font-bold text-blue-600 border-2 border-blue-200">{pScore || "?"}</div></div>
+                    <div className="flex items-center text-gray-300 font-bold">VS</div>
+                    <div><p className="mb-2 text-gray-500 text-sm">店長</p><div className="w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center text-4xl font-bold text-red-600 border-2 border-red-200">{hScore || "?"}</div></div>
+                </div>
+                {stage === 'result' && (
+                    <div className={`text-xl font-bold mb-4 ${pScore > hScore ? 'text-green-600' : 'text-gray-500'}`}>
+                        {pScore > hScore ? "你贏了！" : pScore === hScore ? "平手..." : "再接再厲！"}
+                    </div>
+                )}
+                {stage === 'ready' && (
+                    <button onClick={roll} className="w-full py-3 rounded-xl font-bold text-white shadow-lg active:scale-95 transition-transform" style={{ backgroundColor: theme.colors.primary }}>擲骰子</button>
+                )}
+                <button onClick={onClose} className="mt-4 text-gray-400 text-sm underline">放棄離開</button>
+            </div>
+        </div>
+    );
+};
+
+const RPSGame = ({ onEnd, onClose, theme }) => {
+    const options = ['✌️', '✊', '🖐️']; // 0:剪刀, 1:石頭, 2:布
+    const [result, setResult] = useState(null); // null, win, lose, draw
+
+    const play = (choice) => {
+        const houseChoice = Math.floor(Math.random() * 3);
+        // 0贏2, 1贏0, 2贏1
+        let isWin = false;
+        let isDraw = false;
+        
+        if (choice === houseChoice) isDraw = true;
+        else if ((choice === 0 && houseChoice === 2) || (choice === 1 && houseChoice === 0) || (choice === 2 && houseChoice === 1)) isWin = true;
+
+        if (isDraw) {
+            alert(`店長也出 ${options[houseChoice]}！平手，請再出一次！`);
+            return; // 平手重來
+        }
+        
+        setResult({ player: options[choice], house: options[houseChoice], isWin });
+        setTimeout(() => onEnd(isWin), 1500);
+    };
+
+    if (result) {
+        return (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80">
+                <div className="bg-white p-8 rounded-3xl w-80 text-center animate-in zoom-in">
+                    <div className="text-6xl mb-4">{result.isWin ? '🎉' : '😢'}</div>
+                    <h3 className="text-2xl font-bold mb-2">{result.isWin ? '你贏了！' : '可惜輸了'}</h3>
+                    <p className="text-gray-500 mb-6">你出 {result.player} vs 店長出 {result.house}</p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80">
+            <div className="bg-white p-6 rounded-3xl w-full max-w-sm text-center animate-in zoom-in">
+                <h3 className="text-2xl font-bold mb-2">✌️ 剪刀石頭布</h3>
+                <p className="text-gray-500 mb-6">贏了就有獎，平手再以此！</p>
+                <div className="grid grid-cols-3 gap-4">
+                    {options.map((opt, idx) => (
+                        <button key={idx} onClick={() => play(idx)} 
+                            className="aspect-square rounded-2xl bg-gray-50 text-4xl hover:bg-blue-50 hover:scale-105 transition-all border-2 border-gray-200 shadow-sm flex items-center justify-center">
+                            {opt}
+                        </button>
+                    ))}
+                </div>
+                <button onClick={onClose} className="mt-6 text-gray-400 text-sm underline">放棄離開</button>
+            </div>
+        </div>
+    );
+};
+
+const ScratchGame = ({ onEnd, onClose, theme }) => {
+    const [scratched, setScratched] = useState(false);
+    const [isWin, setIsWin] = useState(false);
+    
+    const handleScratch = () => {
+        if (scratched) return;
+        setScratched(true);
+        // 33% 機率中獎
+        const win = Math.random() < 0.33;
+        setIsWin(win);
+        setTimeout(() => onEnd(win), 2000);
+    };
+
+    return (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80">
+            <div className="bg-white p-6 rounded-3xl w-80 text-center animate-in zoom-in relative">
+                 <h3 className="text-xl font-bold mb-4">🎫 幸運刮刮樂</h3>
+                 <div className="relative w-64 h-32 mx-auto rounded-xl overflow-hidden shadow-inner bg-gray-100 flex items-center justify-center border-2 border-gray-300">
+                     {/* 底層結果 */}
+                     <div className={`text-2xl font-bold flex items-center gap-2 ${isWin ? 'text-red-500' : 'text-gray-400'}`}>
+                         {isWin ? <><Gift className="animate-bounce"/> 中獎了!</> : "銘謝惠顧"}
+                     </div>
+                     
+                     {/* 上層銀漆 (簡單模擬，點擊刮開) */}
+                     {!scratched && (
+                         <button onClick={handleScratch} 
+                            className="absolute inset-0 bg-gray-400 flex flex-col items-center justify-center text-white hover:bg-gray-500 transition-colors z-10 cursor-pointer">
+                             <Eraser className="w-8 h-8 mb-2 animate-pulse" />
+                             <span className="font-bold tracking-widest">點擊刮開</span>
+                         </button>
+                     )}
+                 </div>
+                 <p className="mt-4 text-sm text-gray-500">{scratched ? (isWin ? "正在領取獎品..." : "運氣不好，明天再來！") : "祝您中大獎！"}</p>
+                 {!scratched && <button onClick={onClose} className="mt-4 text-gray-400 text-sm underline">放棄離開</button>}
+            </div>
+        </div>
+    );
+};
+// --- 🎮 遊戲中心擴充模組 End ---
