@@ -985,9 +985,16 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both' }) {
       {!isNone && showLottery && <WinnersList theme={theme} />}
       
       {!isNone && showLoyalty && <LoyaltyPromoCard theme={theme} />}
-{/* --- 請將以下程式碼插入在 LoyaltyPromoCard 之後 --- */}
 
       <div className="w-full max-w-sm md:max-w-md space-y-4 z-10 relative pt-4">
+        
+        {/* --- 新增：首頁的每日挑戰入口按鈕 --- */}
+        <button onClick={() => setView("customer-login")} className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 text-lg md:text-xl transition-all active:scale-95 group animate-in slide-in-from-bottom-2 border-2 border-white/20">
+            <Gamepad2 className="w-7 h-7 animate-bounce" /> 
+            <span>每日挑戰 (贏免費好禮)</span>
+        </button>
+        {/* ------------------------------------- */}
+
         <button onClick={goToMenu} className="w-full font-bold py-4 rounded-2xl shadow-lg active:shadow-none active:translate-y-1 flex items-center justify-center gap-3 text-lg md:text-xl transition-all"
                 style={{ backgroundColor: theme.colors.accent, color: theme.colors.textDark }}>
           <Utensils className="w-6 h-6" /> 查看美味菜單
@@ -1017,8 +1024,6 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both' }) {
           </div>
         </div>
       </div>
-
-      {/* --- 插入結束 --- */}
     </div>
   );
 }
