@@ -985,6 +985,40 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both' }) {
       {!isNone && showLottery && <WinnersList theme={theme} />}
       
       {!isNone && showLoyalty && <LoyaltyPromoCard theme={theme} />}
+{/* --- 請將以下程式碼插入在 LoyaltyPromoCard 之後 --- */}
+
+      <div className="w-full max-w-sm md:max-w-md space-y-4 z-10 relative pt-4">
+        <button onClick={goToMenu} className="w-full font-bold py-4 rounded-2xl shadow-lg active:shadow-none active:translate-y-1 flex items-center justify-center gap-3 text-lg md:text-xl transition-all"
+                style={{ backgroundColor: theme.colors.accent, color: theme.colors.textDark }}>
+          <Utensils className="w-6 h-6" /> 查看美味菜單
+        </button>
+        <button onClick={() => setView("customer-login")} className="w-full bg-white border-2 font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 text-lg md:text-xl transition-all active:scale-95 group hover:brightness-95"
+                style={{ borderColor: theme.colors.primary, color: theme.colors.primary }}>
+          <User className="w-6 h-6 group-hover:scale-110 transition-transform" /> 我是顧客 (查詢/註冊)
+        </button>
+        <button onClick={() => setView("admin-login")} className="w-full backdrop-blur-sm border border-white/30 text-white hover:bg-white/10 font-bold py-4 rounded-2xl shadow-lg active:shadow-none active:translate-y-1 flex items-center justify-center gap-3 text-lg md:text-xl transition-all">
+          <Lock className="w-6 h-6" style={{ color: theme.colors.accent }} /> 店長登入 (後台)
+        </button>
+      </div>
+
+      <div className="mt-8 w-full max-w-md bg-black/40 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-white/20 text-center space-y-3 z-10 relative text-white">
+        <h3 className="font-bold border-b border-white/20 pb-2 mb-2 flex items-center justify-center gap-2" style={{ color: theme.colors.accent }}>
+            <Store className="w-4 h-4" /> 店家資訊
+        </h3>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-center gap-2">
+            <Phone className="w-5 h-5 flex-shrink-0" style={{ color: theme.colors.accent }} /> 
+            <span className="font-medium text-white/80">餐盒訂購專線：</span> 
+            <a href="tel:0903282278" className="font-bold hover:text-white transition-colors border-b border-dashed" style={{ color: theme.colors.accent }}>0903-282278</a>
+          </div>
+          <div className="flex items-start justify-center gap-2">
+            <MapPin className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: theme.colors.success }} />
+            <div className="text-left"><span className="font-medium text-white/80">地址：</span> <a href="https://www.google.com/maps/search/?api=1&query=台中市北區文心路四段198-1號" target="_blank" rel="noreferrer" className="hover:text-white transition-colors" style={{ color: theme.colors.accent }}>台中市北區文心路四段198-1號</a></div>
+          </div>
+        </div>
+      </div>
+
+      {/* --- 插入結束 --- */}
     </div>
   );
 }
