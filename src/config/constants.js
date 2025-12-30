@@ -59,7 +59,7 @@ export const THEMES = {
     particleType: 'coin',
     title: '新春活動',
     milestoneText: '新春紅包',
-    logo: 'https://i.ibb.co/35kcbtDk/1766105776647.png'
+    logo: '/images/新春.jpg'
   },
   daily: {
     id: 'daily',
