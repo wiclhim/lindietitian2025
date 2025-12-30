@@ -1,5 +1,7 @@
+// src/App.js
 import AdminDashboard from "./features/admin/AdminDashboard";
-import GameCenter from "./features/games/GameCenter";import React, { useState, useEffect, useRef, useMemo } from "react";
+import GameCenter from "./features/games/GameCenter";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   collection,
   addDoc,
@@ -451,7 +453,8 @@ function AdminLogin({ setView, theme, isDemoMode }) {
           value={pin} 
           onChange={(e) => setPin(e.target.value)} 
           placeholder="請輸入管理密碼" 
-          className="w-full p-4 border rounded-xl text-center text-xl tracking-widest outline-none focus:ring-2"
+          // 修正點：加入 text-black 確保輸入文字清晰
+          className="w-full p-4 border rounded-xl text-center text-xl tracking-widest outline-none focus:ring-2 text-black"
           style={{ focusRing: theme.colors.primary }}
           inputMode="numeric"
           autoFocus
@@ -537,9 +540,10 @@ function CustomerLogin({ setView, setCurrentUserData, theme, isDemoMode }) {
     <div className="max-w-md mx-auto mt-6 bg-white p-6 md:p-8 rounded-3xl shadow-xl border-t-8" style={{ borderColor: theme.colors.primary }}>
       <h2 className="text-2xl font-bold text-center mb-8" style={{ color: theme.colors.textDark }}>{isRegistering ? "新顧客註冊" : "顧客查詢/登入"}</h2>
       <form onSubmit={isRegistering ? handleRegister : handleLogin} className="space-y-5">
-        <div><label className="block text-base font-medium text-gray-600 mb-2">手機號碼</label><input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0912345678" className="w-full p-4 border border-gray-300 rounded-xl outline-none text-gray-800 text-lg bg-gray-50" required inputMode="tel" /></div>
-        {isRegistering && <div className="animate-in slide-in-from-top-2"><label className="block text-base font-medium text-gray-600 mb-2">您的稱呼</label><input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="例如: 王小明" className="w-full p-4 border border-gray-300 rounded-xl outline-none text-gray-800 text-lg bg-gray-50" required /></div>}
-        <div><label className="block text-base font-medium text-gray-600 mb-2">{isRegistering ? "設定查詢密碼 (4-6碼)" : "查詢密碼"}</label><input type="password" value={pin} onChange={(e) => setPin(e.target.value)} placeholder="••••" className="w-full p-4 border border-gray-300 rounded-xl outline-none text-gray-800 text-lg bg-gray-50" required inputMode="numeric" /></div>
+        {/* 修正點：所有 Input 都加入 text-black */}
+        <div><label className="block text-base font-medium text-gray-600 mb-2">手機號碼</label><input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0912345678" className="w-full p-4 border border-gray-300 rounded-xl outline-none text-gray-800 text-lg bg-gray-50 text-black" required inputMode="tel" /></div>
+        {isRegistering && <div className="animate-in slide-in-from-top-2"><label className="block text-base font-medium text-gray-600 mb-2">您的稱呼</label><input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="例如: 王小明" className="w-full p-4 border border-gray-300 rounded-xl outline-none text-gray-800 text-lg bg-gray-50 text-black" required /></div>}
+        <div><label className="block text-base font-medium text-gray-600 mb-2">{isRegistering ? "設定查詢密碼 (4-6碼)" : "查詢密碼"}</label><input type="password" value={pin} onChange={(e) => setPin(e.target.value)} placeholder="••••" className="w-full p-4 border border-gray-300 rounded-xl outline-none text-gray-800 text-lg bg-gray-50 text-black" required inputMode="numeric" /></div>
         {msg && <p className="text-base font-bold text-center bg-red-50 p-3 rounded-xl border border-red-100 text-red-600">{msg}</p>}
         <button disabled={loading} className="w-full text-white font-bold py-4 rounded-xl shadow-lg active:shadow-none active:translate-y-1 transition-all disabled:opacity-50 text-lg md:text-xl mt-4"
                 style={{ backgroundColor: theme.colors.primary }}>
@@ -823,4 +827,3 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
     </div>
   );
 }
-
