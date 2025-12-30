@@ -37,7 +37,7 @@ export const THEMES = {
     particleType: 'snow',
     title: '聖誕活動',
     milestoneText: '聖誕禮物',
-    logo: 'https://i.ibb.co/GvSs1BtJ/1765508995830.png'
+    logo: '/images/聖誕.jpg'
   },
   cny: {
     id: 'cny',
@@ -79,9 +79,9 @@ export const THEMES = {
     },
     icon: Utensils,
     particleType: 'none',
-    title: '集點活動',
+    title: '歡迎光臨',
     milestoneText: '專屬好禮',
-    logo: 'https://i.ibb.co/Zz2cFMkT/1766320100151.png'
+    logo: '/images/一般.jpg'
   },
   halloween: {
     id: 'halloween',
@@ -103,7 +103,7 @@ export const THEMES = {
     particleType: 'ghost',
     title: '萬聖節活動',
     milestoneText: '搗蛋好禮',
-    logo: 'https://i.ibb.co/f6T1X9d/1766102862428.png'
+    logo: '/images/萬聖.jpg'
   },
   sakura: {
     id: 'sakura',
@@ -125,7 +125,7 @@ export const THEMES = {
     particleType: 'sakura',
     title: '春日祭典',
     milestoneText: '櫻花好禮',
-    logo: 'https://i.ibb.co/Z1MSwCpW/1766102771173.png'
+    logo: '/images/春櫻.jpg'
   },
   autumn: {
     id: 'autumn',
@@ -147,7 +147,7 @@ export const THEMES = {
     particleType: 'leaf',
     title: '秋收感恩',
     milestoneText: '豐收好禮',
-    logo: 'https://i.ibb.co/kVGCHMJS/1766103839305.png'
+    logo: '/images/秋楓.jpg'
   },
   moon: {
     id: 'moon',
@@ -169,7 +169,7 @@ export const THEMES = {
     particleType: 'star',
     title: '佳節活動',
     milestoneText: '團圓好禮',
-    logo: 'https://i.ibb.co/dJsfGR3P/IMG-20251219-081938.jpg'
+    logo: '/images/元宵.jpg'
   },
   summer: {
     id: 'summer',
@@ -191,6 +191,6 @@ export const THEMES = {
     particleType: 'bubble',
     title: '仲夏活動',
     milestoneText: '清涼好禮',
-    logo: 'https://i.ibb.co/XfFC431m/1766103300724.png'
+    logo: '/images/端午.jpg'
   }
 };
