@@ -12,6 +12,7 @@ const GameCenter = ({ userData, theme, isDemoMode, onClose }) => {
     const [playedStatus, setPlayedStatus] = useState({});
 
     useEffect(() => {
+        // 1. 處理展示模式
         if (isDemoMode) {
             setGameSettings({
                 dice: { enabled: true, prizes: "免費滷蛋" },
@@ -20,20 +21,56 @@ const GameCenter = ({ userData, theme, isDemoMode, onClose }) => {
             });
             return;
         }
-        if (db) {
-            getDoc(doc(db, "settings", "games")).then(s => s.exists() && setGameSettings(s.data()));
-        }
-        // 檢查 user 上次遊玩紀錄
-        if (userData && userData.gamesLastPlayed) {
-            setPlayedStatus(userData.gamesLastPlayed);
-        }
-    }, [isDemoMode, userData]);
+
+        // 定義非同步函數來讀取資料
+        const initData = async () => {
+            if (!db) return;
+
+            // 2. 讀取遊戲全域設定
+            try {
+                const settingsSnap = await getDoc(doc(db, "settings", "games"));
+                if (settingsSnap.exists()) {
+                    setGameSettings(settingsSnap.data());
+                }
+            } catch (error) {
+                console.error("Error fetching game settings:", error);
+            }
+
+            // 3. [修正重點] 強制讀取 User 最新的遊玩紀錄
+            // 避免因為父層傳入的 userData 是舊的，導致關閉重開後紀錄被重置
+            if (userData?.id) {
+                // 先用傳入的 props 做初始顯示 (優化體驗)
+                if (userData.gamesLastPlayed) {
+                    setPlayedStatus(userData.gamesLastPlayed);
+                }
+
+                try {
+                    // 直接查資料庫確認最新狀態
+                    const userRef = doc(db, "customers", userData.id);
+                    const userSnap = await getDoc(userRef);
+                    
+                    if (userSnap.exists()) {
+                        const freshData = userSnap.data();
+                        if (freshData.gamesLastPlayed) {
+                            // 更新為資料庫中的最新狀態
+                            setPlayedStatus(freshData.gamesLastPlayed);
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error syncing user game status:", error);
+                }
+            }
+        };
+
+        initData();
+
+    }, [isDemoMode, userData?.id]); // 依賴 userData.id 確保切換用戶或重開時會執行
 
     const handleGameEnd = async (gameId, isWin, prizeName) => {
         if (!userData?.id) return;
         const now = new Date();
         
-        // 更新本地狀態以即時顯示
+        // 更新本地狀態以即時顯示 (讓按鈕立刻變灰)
         setPlayedStatus(prev => ({ ...prev, [gameId]: { seconds: now.getTime() / 1000 } }));
 
         if (isDemoMode) {
@@ -42,31 +79,37 @@ const GameCenter = ({ userData, theme, isDemoMode, onClose }) => {
             return;
         }
 
-        const batch = writeBatch(db);
-        const userRef = doc(db, "customers", userData.id);
-        
-        // 1. 更新最後遊玩時間
-        batch.set(userRef, { 
-            gamesLastPlayed: { ...playedStatus, [gameId]: serverTimestamp() } 
-        }, { merge: true });
-
-        // 2. 如果贏了，發送獎品
-        if (isWin) {
-            const newPrizeRef = doc(collection(db, "prizes"));
-            const expiresAt = new Date();
-            expiresAt.setMonth(expiresAt.getMonth() + 1); // 遊戲獎品期限1個月
+        try {
+            const batch = writeBatch(db);
+            const userRef = doc(db, "customers", userData.id);
             
-            batch.set(newPrizeRef, {
-                name: `🎮 挑戰禮：${prizeName}`,
-                claimed: true, redeemed: false,
-                winner: { name: userData.name, phone: userData.phone, ticketId: `GAME-${gameId.toUpperCase()}-${Date.now().toString().slice(-4)}` },
-                type: 'game_reward',
-                createdAt: serverTimestamp(),
-                expiresAt: expiresAt
-            });
+            // 1. 更新最後遊玩時間
+            batch.set(userRef, { 
+                gamesLastPlayed: { ...playedStatus, [gameId]: serverTimestamp() } 
+            }, { merge: true });
+
+            // 2. 如果贏了，發送獎品
+            if (isWin) {
+                const newPrizeRef = doc(collection(db, "prizes"));
+                const expiresAt = new Date();
+                expiresAt.setMonth(expiresAt.getMonth() + 1); // 遊戲獎品期限1個月
+                
+                batch.set(newPrizeRef, {
+                    name: `🎮 挑戰禮：${prizeName}`,
+                    claimed: true, redeemed: false,
+                    winner: { name: userData.name, phone: userData.phone, ticketId: `GAME-${gameId.toUpperCase()}-${Date.now().toString().slice(-4)}` },
+                    type: 'game_reward',
+                    createdAt: serverTimestamp(),
+                    expiresAt: expiresAt
+                });
+            }
+            await batch.commit();
+            if(isWin) alert(`🎉 太棒了！獲得「${prizeName}」\n請至「我的獎品匣」查看。`);
+        } catch (error) {
+            console.error("Game save error:", error);
+            alert("資料儲存失敗，請檢查網路連線");
         }
-        await batch.commit();
-        if(isWin) alert(`🎉 太棒了！獲得「${prizeName}」\n請至「我的獎品匣」查看。`);
+        
         setActiveGame(null);
     };
 

@@ -35,7 +35,8 @@ const GameSettings = ({ theme, isDemoMode }) => {
 
     return (
         <div className="bg-white p-6 rounded-3xl border shadow-sm max-w-2xl mx-auto" style={{ borderColor: theme.colors.cardBorder }}>
-            <h3 className="text-xl font-bold mb-4 flex items-center gap-2" style={{ color: theme.colors.textDark }}>
+            {/* 標題強制使用深色，確保在白底上清楚 */}
+            <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-gray-900">
                 <Gamepad2 className="w-6 h-6" style={{ color: theme.colors.primary }} /> 每日挑戰設定
             </h3>
             <div className="space-y-6">
@@ -46,8 +47,9 @@ const GameSettings = ({ theme, isDemoMode }) => {
                 ].map(g => (
                     <div key={g.id} className="p-4 rounded-xl border-2 bg-gray-50" style={{ borderColor: settings[g.id]?.enabled ? theme.colors.success : '#E5E7EB' }}>
                         <div className="flex justify-between items-center mb-3">
-                            <h4 className="font-bold flex items-center gap-2 text-lg">
-                                <g.icon className="w-5 h-5" /> {g.name}
+                            {/* 修改點：加入 text-gray-900 強制文字為深黑色 */}
+                            <h4 className="font-bold flex items-center gap-2 text-lg text-gray-900">
+                                <g.icon className="w-5 h-5 text-gray-700" /> {g.name}
                             </h4>
                             <label className="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" className="sr-only peer" checked={settings[g.id]?.enabled || false} 
@@ -57,10 +59,13 @@ const GameSettings = ({ theme, isDemoMode }) => {
                         </div>
                         {settings[g.id]?.enabled && (
                             <div>
-                                <label className="text-xs font-bold text-gray-500 mb-1 block">獎品池 (用逗號分隔多個獎項)</label>
+                                {/* 修改點：label 改為 text-gray-700 確保清晰 */}
+                                <label className="text-xs font-bold text-gray-700 mb-1 block">獎品池 (用逗號分隔多個獎項)</label>
+                                {/* 修改點：input 加入 text-gray-900 確保輸入文字為深色 */}
                                 <input type="text" value={settings[g.id]?.prizes || ""} 
                                     onChange={(e) => toggleGame(g.id, 'prizes', e.target.value)}
-                                    className="w-full p-2 border rounded-lg" placeholder="例如：滷蛋,5元折價券,紅茶" />
+                                    className="w-full p-2 border rounded-lg text-gray-900 bg-white placeholder-gray-400" 
+                                    placeholder="例如：滷蛋,5元折價券,紅茶" />
                             </div>
                         )}
                     </div>
