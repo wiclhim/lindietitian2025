@@ -8,11 +8,10 @@ import { DiceGame, RPSGame, ScratchGame } from "./MiniGames";
 
 const GameCenter = ({ userData, theme, isDemoMode, onClose }) => {
     const [gameSettings, setGameSettings] = useState(null);
-    const [activeGame, setActiveGame] = useState(null); // 'dice', 'rps', 'scratch'
+    const [activeGame, setActiveGame] = useState(null);
     const [playedStatus, setPlayedStatus] = useState({});
 
     useEffect(() => {
-        // 1. 處理展示模式
         if (isDemoMode) {
             setGameSettings({
                 dice: { enabled: true, prizes: "免費滷蛋" },
@@ -22,11 +21,9 @@ const GameCenter = ({ userData, theme, isDemoMode, onClose }) => {
             return;
         }
 
-        // 定義非同步函數來讀取資料
         const initData = async () => {
             if (!db) return;
 
-            // 2. 讀取遊戲全域設定
             try {
                 const settingsSnap = await getDoc(doc(db, "settings", "games"));
                 if (settingsSnap.exists()) {
@@ -36,23 +33,16 @@ const GameCenter = ({ userData, theme, isDemoMode, onClose }) => {
                 console.error("Error fetching game settings:", error);
             }
 
-            // 3. [修正重點] 強制讀取 User 最新的遊玩紀錄
-            // 避免因為父層傳入的 userData 是舊的，導致關閉重開後紀錄被重置
             if (userData?.id) {
-                // 先用傳入的 props 做初始顯示 (優化體驗)
                 if (userData.gamesLastPlayed) {
                     setPlayedStatus(userData.gamesLastPlayed);
                 }
-
                 try {
-                    // 直接查資料庫確認最新狀態
                     const userRef = doc(db, "customers", userData.id);
                     const userSnap = await getDoc(userRef);
-                    
                     if (userSnap.exists()) {
                         const freshData = userSnap.data();
                         if (freshData.gamesLastPlayed) {
-                            // 更新為資料庫中的最新狀態
                             setPlayedStatus(freshData.gamesLastPlayed);
                         }
                     }
@@ -63,14 +53,12 @@ const GameCenter = ({ userData, theme, isDemoMode, onClose }) => {
         };
 
         initData();
-
-    }, [isDemoMode, userData?.id]); // 依賴 userData.id 確保切換用戶或重開時會執行
+    }, [isDemoMode, userData?.id]);
 
     const handleGameEnd = async (gameId, isWin, prizeName) => {
         if (!userData?.id) return;
         const now = new Date();
         
-        // 更新本地狀態以即時顯示 (讓按鈕立刻變灰)
         setPlayedStatus(prev => ({ ...prev, [gameId]: { seconds: now.getTime() / 1000 } }));
 
         if (isDemoMode) {
@@ -83,16 +71,14 @@ const GameCenter = ({ userData, theme, isDemoMode, onClose }) => {
             const batch = writeBatch(db);
             const userRef = doc(db, "customers", userData.id);
             
-            // 1. 更新最後遊玩時間
             batch.set(userRef, { 
                 gamesLastPlayed: { ...playedStatus, [gameId]: serverTimestamp() } 
             }, { merge: true });
 
-            // 2. 如果贏了，發送獎品
             if (isWin) {
                 const newPrizeRef = doc(collection(db, "prizes"));
                 const expiresAt = new Date();
-                expiresAt.setMonth(expiresAt.getMonth() + 1); // 遊戲獎品期限1個月
+                expiresAt.setMonth(expiresAt.getMonth() + 1); 
                 
                 batch.set(newPrizeRef, {
                     name: `🎮 挑戰禮：${prizeName}`,
@@ -137,10 +123,12 @@ const GameCenter = ({ userData, theme, isDemoMode, onClose }) => {
             <div className="bg-white w-full max-w-lg rounded-3xl p-6 relative animate-in zoom-in duration-300">
                 <button onClick={onClose} className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full"><XCircle className="w-8 h-8 text-gray-400" /></button>
                 
-                <h2 className="text-2xl font-bold text-center mb-2 flex items-center justify-center gap-2">
+                {/* 1. 主標題顏色加深為 text-gray-900 */}
+                <h2 className="text-2xl font-bold text-center mb-2 flex items-center justify-center gap-2 text-gray-900">
                     <Gamepad2 className="w-8 h-8" style={{ color: theme.colors.primary }} /> 每日挑戰
                 </h2>
-                <p className="text-center text-gray-500 mb-6 text-sm">每天每種遊戲限玩一次，贏了馬上領獎！</p>
+                {/* 2. 副標題顏色加深為 text-gray-700 */}
+                <p className="text-center text-gray-700 mb-6 text-sm">每天每種遊戲限玩一次，贏了馬上領獎！</p>
 
                 <div className="space-y-4">
                     {games.map(g => {
@@ -149,21 +137,30 @@ const GameCenter = ({ userData, theme, isDemoMode, onClose }) => {
                         
                         return (
                             <button key={g.id} disabled={isPlayed} onClick={() => setActiveGame(g.id)}
-                                className={`w-full p-4 rounded-2xl border-2 flex items-center gap-4 transition-all relative overflow-hidden group ${isPlayed ? 'opacity-60 grayscale bg-gray-50 cursor-not-allowed' : 'hover:scale-[1.02] hover:shadow-md bg-white'}`}
+                                /* 3. 移除 'opacity-60'，改用單純的 bg-gray-100 和 grayscale 
+                                   這樣文字不會變透明，但整體看起來還是有「已停用」的感覺
+                                */
+                                className={`w-full p-4 rounded-2xl border-2 flex items-center gap-4 transition-all relative overflow-hidden group 
+                                    ${isPlayed 
+                                        ? 'grayscale bg-gray-100 cursor-not-allowed border-gray-200' 
+                                        : 'hover:scale-[1.02] hover:shadow-md bg-white'}`}
                                 style={{ borderColor: isPlayed ? '#E5E7EB' : g.color }}>
+                                
                                 <div className={`p-3 rounded-full text-white shadow-sm`} style={{ backgroundColor: isPlayed ? '#9CA3AF' : g.color }}>
                                     <g.icon className="w-6 h-6" />
                                 </div>
                                 <div className="text-left flex-1">
-                                    <h3 className="font-bold text-lg text-gray-800">{g.name}</h3>
-                                    <p className="text-xs text-gray-500">{isPlayed ? "明日再來挑戰！" : g.desc}</p>
+                                    {/* 4. 遊戲名稱顏色加深為 text-gray-900 */}
+                                    <h3 className="font-bold text-lg text-gray-900">{g.name}</h3>
+                                    {/* 5. 遊戲描述顏色加深為 text-gray-600 */}
+                                    <p className="text-xs text-gray-600 font-medium">{isPlayed ? "明日再來挑戰！" : g.desc}</p>
                                 </div>
                                 {isPlayed ? <CheckCircle2 className="w-6 h-6 text-gray-400" /> : <div className="bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">GO!</div>}
                             </button>
                         );
                     })}
                     {Object.values(gameSettings).every(s => !s.enabled) && (
-                        <div className="text-center py-8 text-gray-400">目前沒有開放的活動，敬請期待！</div>
+                        <div className="text-center py-8 text-gray-500 font-bold">目前沒有開放的活動，敬請期待！</div>
                     )}
                 </div>
             </div>
