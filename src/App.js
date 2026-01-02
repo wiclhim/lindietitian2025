@@ -758,7 +758,7 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
                    <input type="number" placeholder="$" value={reportAmount} onChange={e => setReportAmount(e.target.value)} className="w-full p-3 border rounded-xl text-lg font-bold text-center bg-gray-50 text-black" inputMode="numeric" />
                  </div>
                  <div className="flex-1">
-                   <label className="block text-sm font-medium text-gray-600 mb-1">便當數量</label>
+                   <label className="block text-sm font-medium text-gray-600 mb-1">餐盒數量</label>
                    <input type="number" placeholder="0" value={reportBento} onChange={e => setReportBento(e.target.value)} className="w-full p-3 border rounded-xl text-lg font-bold text-center bg-gray-50 text-black" inputMode="numeric" />
                  </div>
                </div>
@@ -894,7 +894,7 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
         <div className="bg-white p-6 rounded-2xl shadow-sm border" style={{ borderColor: theme.colors.cardBorder }}>
           <h3 className="font-bold mb-4 flex items-center gap-2 text-lg" style={{ color: theme.colors.textDark }}><PlusCircle className="w-6 h-6" style={{ color: theme.colors.success }} /> 如何累積點數？</h3>
           <p className="text-gray-700 text-base leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100">
-              點擊上方的<strong className="text-blue-600">「消費回報」</strong>按鈕，輸入您的消費金額與便當數量。店長收到通知並確認無誤後，點數就會自動入帳喔！
+              點擊上方的<strong className="text-blue-600">「消費回報」</strong>按鈕，輸入您的消費金額與餐盒數量。店長收到通知並確認無誤後，點數就會自動入帳喔！
           </p>
         </div>
 
