@@ -106,7 +106,7 @@ export default function App() {
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [eventType, setEventType] = useState('both'); 
   
-  // --- 新增：紀錄是否需要自動開啟回報視窗 ---
+  // --- 新增：紀錄是否需要自動開啟回報視窗或遊戲 ---
   const [initialAction, setInitialAction] = useState(null);
 
   // --- 遊戲設定狀態 ---
@@ -366,7 +366,7 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both', hasActiveGa
                   <p>每滿 300 元自動獲得一張摸彩券</p>
                   {/* 新增：累積點數說明 */}
                   <div className="mt-2 pt-2 border-t border-dashed border-gray-300">
-                    <p className="text-sm">💡 點擊登記消費 ➜ 輸入消費金額 ➜ 店長確認即完成！</p>
+                    <p className="text-sm">💡 點擊登記消費 ➜ 輸入餐盒數量 ➜ 店長確認即完成！</p>
                   </div>
                 </div>
               </div>
@@ -380,7 +380,8 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both', hasActiveGa
 
       <div className="w-full max-w-sm md:max-w-md space-y-4 z-10 relative pt-4">
         {hasActiveGames && (
-            <button onClick={() => setView("customer-login")} className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 text-lg md:text-xl transition-all active:scale-95 group animate-in slide-in-from-bottom-2 border-2 border-white/20">
+            // 修改：點擊每日挑戰時，設定 initialAction 為 'game'
+            <button onClick={() => { setInitialAction('game'); setView("customer-login"); }} className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 text-lg md:text-xl transition-all active:scale-95 group animate-in slide-in-from-bottom-2 border-2 border-white/20">
                 <Gamepad2 className="w-7 h-7 animate-bounce" /> 
                 <span>每日挑戰 (贏免費好禮)</span>
             </button>
@@ -578,11 +579,14 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
   const showLoyalty = eventType === 'loyalty' || eventType === 'both';
   const isNone = eventType === 'none';
 
-  // --- 新增：監聽 initialAction (自動開啟回報視窗) ---
+  // --- 修改：監聽 initialAction，區分 'report' 和 'game' ---
   useEffect(() => {
     if (initialAction === 'report') {
         setShowSelfCheckIn(true);
-        if (setInitialAction) setInitialAction(null); // 開啟後重置，避免重複觸發
+        if (setInitialAction) setInitialAction(null); // 開啟後重置
+    } else if (initialAction === 'game') {
+        setShowGameCenter(true); // 自動開啟遊戲中心
+        if (setInitialAction) setInitialAction(null); // 開啟後重置
     }
   }, [initialAction, setInitialAction]);
 
