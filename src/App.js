@@ -106,6 +106,9 @@ export default function App() {
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [eventType, setEventType] = useState('both'); 
   
+  // --- 新增：紀錄是否需要自動開啟回報視窗 ---
+  const [initialAction, setInitialAction] = useState(null);
+
   // --- 遊戲設定狀態 ---
   const [gameSettings, setGameSettings] = useState({}); 
 
@@ -252,12 +255,12 @@ export default function App() {
         <Header view={view} setView={setView} goToMenu={goToMenu} handleLogout={handleLogout} theme={theme} isDemoMode={isDemoMode} />
         
         <main className="max-w-lg md:max-w-5xl mx-auto p-4 md:p-8 pb-24 md:pb-12 relative z-10">
-            {view === "landing" && <LandingPage setView={setView} goToMenu={goToMenu} theme={theme} eventType={eventType} hasActiveGames={hasActiveGames} />}
+            {view === "landing" && <LandingPage setView={setView} goToMenu={goToMenu} theme={theme} eventType={eventType} hasActiveGames={hasActiveGames} setInitialAction={setInitialAction} />}
             {view === "admin-login" && <AdminLogin setView={setView} theme={theme} isDemoMode={isDemoMode} />}
             {view === "customer-login" && <CustomerLogin setView={setView} setCurrentUserData={setCurrentUserData} theme={theme} isDemoMode={isDemoMode} />}
             {view === "menu-view" && <MenuView goBack={goBackFromMenu} theme={theme} />}
             {view === "admin-dash" && <AdminDashboard user={user} theme={theme} isDemoMode={isDemoMode} setCurrentThemeId={setCurrentThemeId} setEventType={setEventType} eventType={eventType} />}
-            {view === "customer-dash" && <CustomerDashboard userData={currentUserData} goToMenu={goToMenu} theme={theme} isDemoMode={isDemoMode} eventType={eventType} hasActiveGames={hasActiveGames} />}
+            {view === "customer-dash" && <CustomerDashboard userData={currentUserData} goToMenu={goToMenu} theme={theme} isDemoMode={isDemoMode} eventType={eventType} hasActiveGames={hasActiveGames} initialAction={initialAction} setInitialAction={setInitialAction} />}
         </main>
         </div>
     </ThemeContext.Provider>
@@ -307,7 +310,7 @@ function MenuView({ goBack, theme }) {
   );
 }
 
-function LandingPage({ setView, goToMenu, theme, eventType = 'both', hasActiveGames }) {
+function LandingPage({ setView, goToMenu, theme, eventType = 'both', hasActiveGames, setInitialAction }) {
   const [clickCount, setClickCount] = useState(0);
   const [showEasterEgg, setShowEasterEgg] = useState(false);
   const handleLogoClick = () => {
@@ -346,7 +349,7 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both', hasActiveGa
                   {showLottery ? (
                       <>消費滿 <span className="font-bold text-xl md:text-2xl" style={{ color: theme.colors.primary }}>300</span> 元贈{theme.milestoneText}</>
                   ) : (
-                      <>買便當<span className="font-bold text-xl md:text-2xl" style={{ color: theme.colors.primary }}>集點數</span>，美味好禮等你換！</>
+                      <>買餐盒<span className="font-bold text-xl md:text-2xl" style={{ color: theme.colors.primary }}>集點數</span>，美味好禮等你換！</>
                   )}
               </p>
             </div>
@@ -365,6 +368,10 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both', hasActiveGa
                   <p>只要報手機號碼，消費金額</p>
                   <p className="text-lg font-bold my-1" style={{ color: theme.colors.primary }}>✨ 可跨日一直累積 ✨</p>
                   <p>每滿 300 元自動獲得一張摸彩券</p>
+                  {/* 新增：累積點數說明 */}
+                  <div className="mt-2 pt-2 border-t border-dashed border-gray-300">
+                    <p className="text-sm">💡 <strong>如何累積？</strong> 點擊下方「登記消費」➜ 輸入餐盒數量 ➜ 店長確認即完成！</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -383,13 +390,22 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both', hasActiveGa
             </button>
         )}
 
+        {/* 新增：直接登記消費按鈕 */}
+        <button 
+            onClick={() => { setInitialAction('report'); setView("customer-login"); }} 
+            className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 text-lg md:text-xl transition-all active:scale-95 group hover:bg-blue-700 animate-in slide-in-from-bottom-2 border-2 border-white/20"
+        >
+            <Edit3 className="w-7 h-7" />
+            <span>📝 登記消費 (集點)</span>
+        </button>
+
         <button onClick={goToMenu} className="w-full font-bold py-4 rounded-2xl shadow-lg active:shadow-none active:translate-y-1 flex items-center justify-center gap-3 text-lg md:text-xl transition-all"
                 style={{ backgroundColor: theme.colors.accent, color: theme.colors.textDark }}>
           <Utensils className="w-6 h-6" /> 查看美味菜單
         </button>
         <button onClick={() => setView("customer-login")} className="w-full bg-white border-2 font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 text-lg md:text-xl transition-all active:scale-95 group hover:brightness-95"
                 style={{ borderColor: theme.colors.primary, color: theme.colors.primary }}>
-          <User className="w-6 h-6 group-hover:scale-110 transition-transform" /> 我是顧客 (查詢/登記)
+          <User className="w-6 h-6 group-hover:scale-110 transition-transform" /> 我是顧客 (查詢/登入)
         </button>
         <button onClick={() => setView("admin-login")} className="w-full backdrop-blur-sm border border-white/30 text-white hover:bg-white/10 font-bold py-4 rounded-2xl shadow-lg active:shadow-none active:translate-y-1 flex items-center justify-center gap-3 text-lg md:text-xl transition-all">
           <Lock className="w-6 h-6" style={{ color: theme.colors.accent }} /> 店長登入 (後台)
@@ -542,7 +558,7 @@ function CustomerLogin({ setView, setCurrentUserData, theme, isDemoMode }) {
 // --------------------------------------------------------
 // CustomerDashboard: 新增自我回報功能
 // --------------------------------------------------------
-function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 'both', hasActiveGames }) {
+function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 'both', hasActiveGames, initialAction, setInitialAction }) {
   const [data, setData] = useState(userData);
   const [myPrizes, setMyPrizes] = useState([]);
   const [confirmRedeemId, setConfirmRedeemId] = useState(null);
@@ -565,6 +581,14 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
   const showLottery = eventType === 'lottery' || eventType === 'both';
   const showLoyalty = eventType === 'loyalty' || eventType === 'both';
   const isNone = eventType === 'none';
+
+  // --- 新增：監聽 initialAction (自動開啟回報視窗) ---
+  useEffect(() => {
+    if (initialAction === 'report') {
+        setShowSelfCheckIn(true);
+        if (setInitialAction) setInitialAction(null); // 開啟後重置，避免重複觸發
+    }
+  }, [initialAction, setInitialAction]);
 
   useEffect(() => {
     if (!userData?.id) return;
