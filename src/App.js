@@ -366,7 +366,7 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both', hasActiveGa
                   <p>每滿 300 元自動獲得一張摸彩券</p>
                   {/* 新增：累積點數說明 */}
                   <div className="mt-2 pt-2 border-t border-dashed border-gray-300">
-                    <p className="text-sm">💡 點擊登記消費 ➜ 輸入餐盒數量 ➜ 店長確認即完成！</p>
+                    <p className="text-sm">💡 點擊登記消費 ➜ 輸入消費金額 ➜ 店長確認即完成！</p>
                   </div>
                 </div>
               </div>

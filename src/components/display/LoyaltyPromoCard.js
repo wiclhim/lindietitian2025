@@ -48,6 +48,10 @@ const LoyaltyPromoCard = ({ theme }) => {
                     <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" style={{ color: theme.colors.success }} />
                     <span>集滿 10 / 15 / 20 點可兌換專屬美味好禮</span>
                 </li>
+                {/* 新增的教學欄位 */}
+                <li className="flex items-start gap-2 bg-gray-50 p-2 rounded-lg">
+                    <span className="block w-full">💡 點擊登記消費 ➜ 輸入餐盒數量 ➜ 店長確認即完成！</span>
+                </li>
             </ul>
         </div>
     );
