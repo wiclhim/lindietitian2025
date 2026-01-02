@@ -267,10 +267,6 @@ export default function App() {
   );
 }
 
-// ... ConfigErrorView, LoadingView, MenuView, LandingPage, AdminLogin, CustomerLogin 保持不變 ...
-// 為節省篇幅，僅修改 CustomerDashboard，其他組件請保留原始檔案內容，或者我可以重新生成完整的 App.js
-// 為了符合 File Generation 規範，我將會生成完整的 App.js 內容。
-
 function ConfigErrorView() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 text-gray-800 p-4 text-center">
@@ -349,7 +345,7 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both', hasActiveGa
                   {showLottery ? (
                       <>消費滿 <span className="font-bold text-xl md:text-2xl" style={{ color: theme.colors.primary }}>300</span> 元贈{theme.milestoneText}</>
                   ) : (
-                      <>買餐盒<span className="font-bold text-xl md:text-2xl" style={{ color: theme.colors.primary }}>集點數</span>，美味好禮等你換！</>
+                      <>買便當<span className="font-bold text-xl md:text-2xl" style={{ color: theme.colors.primary }}>集點數</span>，美味好禮等你換！</>
                   )}
               </p>
             </div>
@@ -370,7 +366,7 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both', hasActiveGa
                   <p>每滿 300 元自動獲得一張摸彩券</p>
                   {/* 新增：累積點數說明 */}
                   <div className="mt-2 pt-2 border-t border-dashed border-gray-300">
-                    <p className="text-sm">💡 <strong>如何累積？</strong> 點擊下方「登記消費」➜ 輸入餐盒數量 ➜ 店長確認即完成！</p>
+                    <p className="text-sm">💡 <strong>如何累積？</strong> 點擊下方「登記消費」➜ 輸入金額 ➜ 店長確認即完成！</p>
                   </div>
                 </div>
               </div>
@@ -776,16 +772,23 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
                  <label className="block text-sm font-medium text-gray-600 mb-1">消費日期</label>
                  <input type="date" value={reportDate} onChange={e => setReportDate(e.target.value)} className="w-full p-3 border rounded-xl text-lg bg-gray-50 text-black" />
                </div>
+               
+               {/* 修改：根據活動類型顯示欄位 */}
                <div className="flex gap-3">
-                 <div className="flex-1">
-                   <label className="block text-sm font-medium text-gray-600 mb-1">消費金額</label>
-                   <input type="number" placeholder="$" value={reportAmount} onChange={e => setReportAmount(e.target.value)} className="w-full p-3 border rounded-xl text-lg font-bold text-center bg-gray-50 text-black" inputMode="numeric" />
-                 </div>
-                 <div className="flex-1">
-                   <label className="block text-sm font-medium text-gray-600 mb-1">餐盒數量</label>
-                   <input type="number" placeholder="0" value={reportBento} onChange={e => setReportBento(e.target.value)} className="w-full p-3 border rounded-xl text-lg font-bold text-center bg-gray-50 text-black" inputMode="numeric" />
-                 </div>
+                 {showLottery && (
+                    <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-600 mb-1">消費金額</label>
+                        <input type="number" placeholder="$" value={reportAmount} onChange={e => setReportAmount(e.target.value)} className="w-full p-3 border rounded-xl text-lg font-bold text-center bg-gray-50 text-black" inputMode="numeric" />
+                    </div>
+                 )}
+                 {showLoyalty && (
+                    <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-600 mb-1">餐盒數量</label>
+                        <input type="number" placeholder="0" value={reportBento} onChange={e => setReportBento(e.target.value)} className="w-full p-3 border rounded-xl text-lg font-bold text-center bg-gray-50 text-black" inputMode="numeric" />
+                    </div>
+                 )}
                </div>
+
                {reportMsg && <p className="text-center text-green-600 font-bold text-sm">{reportMsg}</p>}
                <button className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2">
                  <Send className="w-5 h-5" /> 送出申請
@@ -918,7 +921,7 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
         <div className="bg-white p-6 rounded-2xl shadow-sm border" style={{ borderColor: theme.colors.cardBorder }}>
           <h3 className="font-bold mb-4 flex items-center gap-2 text-lg" style={{ color: theme.colors.textDark }}><PlusCircle className="w-6 h-6" style={{ color: theme.colors.success }} /> 如何累積點數？</h3>
           <p className="text-gray-700 text-base leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100">
-              點擊上方的<strong className="text-blue-600">「消費回報」</strong>按鈕，輸入您的消費金額與餐盒數量。店長收到通知並確認無誤後，點數就會自動入帳喔！
+              點擊上方的<strong className="text-blue-600">「消費回報」</strong>按鈕，輸入您的消費金額與便當數量。店長收到通知並確認無誤後，點數就會自動入帳喔！
           </p>
         </div>
 
@@ -966,3 +969,4 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
     </div>
   );
 }
+```
