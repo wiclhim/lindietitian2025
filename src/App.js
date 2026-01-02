@@ -393,7 +393,7 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both', hasActiveGa
             className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 text-lg md:text-xl transition-all active:scale-95 group hover:bg-blue-700 animate-in slide-in-from-bottom-2 border-2 border-white/20"
         >
             <Edit3 className="w-7 h-7" />
-            <span>📝 登記消費 (集點)</span>
+            <span>登記消費 (集點)</span>
         </button>
 
         <button onClick={goToMenu} className="w-full font-bold py-4 rounded-2xl shadow-lg active:shadow-none active:translate-y-1 flex items-center justify-center gap-3 text-lg md:text-xl transition-all"
