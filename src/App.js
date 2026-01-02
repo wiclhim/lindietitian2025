@@ -969,4 +969,3 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
     </div>
   );
 }
-```
