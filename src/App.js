@@ -1,7 +1,7 @@
 // src/App.js
 import AdminDashboard from "./features/admin/AdminDashboard";
 import GameCenter from "./features/games/GameCenter";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   collection,
   addDoc,
@@ -9,20 +9,30 @@ import {
   doc,
   onSnapshot,
   query,
+  orderBy,
   serverTimestamp,
+  deleteDoc,
   getDoc,
   setDoc,
   writeBatch,
+  getDocs,
   increment,
   where,
   arrayUnion,
+  Timestamp,
+  deleteField,
 } from "firebase/firestore";
 import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "firebase/auth";
 import {
   Gift,
+  Users,
   PartyPopper,
   Ticket,
   PlusCircle,
+  Search,
+  Save,
+  Trash2,
+  LogOut,
   Lock,
   User,
   MessageCircle,
@@ -30,7 +40,11 @@ import {
   Utensils,
   Star,
   Calendar,
+  Download,
+  Upload,
+  Settings,
   Store,
+  ExternalLink,
   CheckCircle2,
   XCircle,
   AlertTriangle,
@@ -38,9 +52,27 @@ import {
   Clock,
   Phone,
   MapPin,
+  RefreshCw,
+  HelpCircle,
+  Circle,
+  Crown,
   Edit3,
   Loader2,
+  Ghost,
+  Moon,
+  Sun,
+  Palette,
+  WifiOff,
+  Flower2,
+  Leaf,
+  Layers,
+  Coffee,
+  Trophy,
+  UserCheck,
   Gamepad2,
+  Dices,
+  Scissors,
+  Eraser,
   Send,
   History
 } from "lucide-react";
@@ -50,7 +82,7 @@ import Header from "./components/ui/Header";
 
 // --- 引入設定 ---
 import { auth, db } from "./config/firebase";
-import { maskTicketId } from "./utils/helpers";
+import { maskTicketId, isSameDay, getRandomPrize } from "./utils/helpers";
 import { THEMES, ADMIN_PIN, LINE_ID, MENU_URL } from "./config/constants";
 import EasterEggModal from "./components/ui/EasterEggModal";
 import RedeemModal from "./components/ui/RedeemModal";
@@ -70,16 +102,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [configError, setConfigError] = useState(false);
   const [authError, setAuthError] = useState(null); 
-  
-  // --- 修改：優先從 localStorage 讀取上次的主題，解決閃爍問題 ---
-  const [currentThemeId, setCurrentThemeId] = useState(() => {
-    try {
-      return localStorage.getItem("cached_theme_id") || 'christmas';
-    } catch (e) {
-      return 'christmas';
-    }
-  });
-
+  const [currentThemeId, setCurrentThemeId] = useState('christmas');
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [eventType, setEventType] = useState('both'); 
   
@@ -161,11 +184,7 @@ export default function App() {
             unsubGlobal = onSnapshot(settingsRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    if (data.activeTheme) {
-                        setCurrentThemeId(data.activeTheme);
-                        // --- 修改：當主題變更時，寫入 localStorage ---
-                        localStorage.setItem("cached_theme_id", data.activeTheme);
-                    }
+                    if (data.activeTheme) setCurrentThemeId(data.activeTheme);
                     if (data.eventType) setEventType(data.eventType);
                 }
             }, (err) => console.error("Global settings error:", err));
