@@ -102,7 +102,16 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [configError, setConfigError] = useState(false);
   const [authError, setAuthError] = useState(null); 
-  const [currentThemeId, setCurrentThemeId] = useState('christmas');
+  
+  // --- 修改：優先從 localStorage 讀取上次的主題，解決閃爍問題 ---
+  const [currentThemeId, setCurrentThemeId] = useState(() => {
+    try {
+      return localStorage.getItem("cached_theme_id") || 'christmas';
+    } catch (e) {
+      return 'christmas';
+    }
+  });
+
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [eventType, setEventType] = useState('both'); 
   
@@ -184,7 +193,11 @@ export default function App() {
             unsubGlobal = onSnapshot(settingsRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    if (data.activeTheme) setCurrentThemeId(data.activeTheme);
+                    if (data.activeTheme) {
+                        setCurrentThemeId(data.activeTheme);
+                        // --- 修改：當主題變更時，寫入 localStorage ---
+                        localStorage.setItem("cached_theme_id", data.activeTheme);
+                    }
                     if (data.eventType) setEventType(data.eventType);
                 }
             }, (err) => console.error("Global settings error:", err));
@@ -393,7 +406,7 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both', hasActiveGa
             className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 text-lg md:text-xl transition-all active:scale-95 group hover:bg-blue-700 animate-in slide-in-from-bottom-2 border-2 border-white/20"
         >
             <Edit3 className="w-7 h-7" />
-            <span>📝 登記消費 (集點)</span>
+            <span>登記消費 (集點)</span>
         </button>
 
         <button onClick={goToMenu} className="w-full font-bold py-4 rounded-2xl shadow-lg active:shadow-none active:translate-y-1 flex items-center justify-center gap-3 text-lg md:text-xl transition-all"
