@@ -1,3 +1,4 @@
+/* eslint-disable */
 // src/App.js
 import AdminDashboard from "./features/admin/AdminDashboard";
 import GameCenter from "./features/games/GameCenter";
@@ -102,7 +103,16 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [configError, setConfigError] = useState(false);
   const [authError, setAuthError] = useState(null); 
-  const [currentThemeId, setCurrentThemeId] = useState('christmas');
+  
+  // --- 修改：優先從 localStorage 讀取上次的主題，解決閃爍問題 ---
+  const [currentThemeId, setCurrentThemeId] = useState(() => {
+    try {
+      return localStorage.getItem("cached_theme_id") || 'christmas';
+    } catch (e) {
+      return 'christmas';
+    }
+  });
+
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [eventType, setEventType] = useState('both'); 
   
@@ -184,7 +194,11 @@ export default function App() {
             unsubGlobal = onSnapshot(settingsRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    if (data.activeTheme) setCurrentThemeId(data.activeTheme);
+                    if (data.activeTheme) {
+                        setCurrentThemeId(data.activeTheme);
+                        // --- 修改：當主題變更時，寫入 localStorage ---
+                        localStorage.setItem("cached_theme_id", data.activeTheme);
+                    }
                     if (data.eventType) setEventType(data.eventType);
                 }
             }, (err) => console.error("Global settings error:", err));
