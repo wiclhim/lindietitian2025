@@ -1,7 +1,7 @@
 // src/App.js
 import AdminDashboard from "./features/admin/AdminDashboard";
 import GameCenter from "./features/games/GameCenter";
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   collection,
   addDoc,
@@ -9,30 +9,20 @@ import {
   doc,
   onSnapshot,
   query,
-  orderBy,
   serverTimestamp,
-  deleteDoc,
   getDoc,
   setDoc,
   writeBatch,
-  getDocs,
   increment,
   where,
   arrayUnion,
-  Timestamp,
-  deleteField,
 } from "firebase/firestore";
 import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "firebase/auth";
 import {
   Gift,
-  Users,
   PartyPopper,
   Ticket,
   PlusCircle,
-  Search,
-  Save,
-  Trash2,
-  LogOut,
   Lock,
   User,
   MessageCircle,
@@ -40,11 +30,7 @@ import {
   Utensils,
   Star,
   Calendar,
-  Download,
-  Upload,
-  Settings,
   Store,
-  ExternalLink,
   CheckCircle2,
   XCircle,
   AlertTriangle,
@@ -52,27 +38,9 @@ import {
   Clock,
   Phone,
   MapPin,
-  RefreshCw,
-  HelpCircle,
-  Circle,
-  Crown,
   Edit3,
   Loader2,
-  Ghost,
-  Moon,
-  Sun,
-  Palette,
-  WifiOff,
-  Flower2,
-  Leaf,
-  Layers,
-  Coffee,
-  Trophy,
-  UserCheck,
   Gamepad2,
-  Dices,
-  Scissors,
-  Eraser,
   Send,
   History
 } from "lucide-react";
@@ -82,7 +50,7 @@ import Header from "./components/ui/Header";
 
 // --- 引入設定 ---
 import { auth, db } from "./config/firebase";
-import { maskTicketId, isSameDay, getRandomPrize } from "./utils/helpers";
+import { maskTicketId } from "./utils/helpers";
 import { THEMES, ADMIN_PIN, LINE_ID, MENU_URL } from "./config/constants";
 import EasterEggModal from "./components/ui/EasterEggModal";
 import RedeemModal from "./components/ui/RedeemModal";
