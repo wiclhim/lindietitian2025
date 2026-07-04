@@ -242,7 +242,7 @@ export const THEMES = {
     title: '四大滿貫',
     milestoneText: '網球好禮',
     // 更新為對應的首頁圖
-    logo: '/images/一般.jpg' 
+    logo: '/images/網球.png' 
   },
   baseball: {
     id: 'baseball',
@@ -265,7 +265,7 @@ export const THEMES = {
     title: '百萬象迷',
     milestoneText: '全壘打好禮',
     // 更新為對應的首頁圖
-    logo: '/images/一般.jpg' 
+    logo: '/images/棒球.png' 
   },
   basketball: {
     id: 'basketball',
@@ -288,7 +288,7 @@ export const THEMES = {
     title: 'NBA殿堂',
     milestoneText: '灌籃好禮',
     // 更新為對應的首頁圖
-    logo: '/images/一般.jpg' 
+    logo: '/images/籃球.png' 
   }
 };
 
