@@ -1,4 +1,4 @@
-// src/config/constants.js
+import React, { useState, useEffect } from 'react';
 import {
   Gift,
   PartyPopper,
@@ -11,7 +11,8 @@ import {
   Trophy,
   Target,
   CircleDot,
-  Flame
+  Flame,
+  Image as ImageIcon
 } from "lucide-react";
 
 // --- Global Constants ---
@@ -217,7 +218,8 @@ export const THEMES = {
     particleType: 'soccer',
     title: '足球主題活動',
     milestoneText: '足球好禮',
-    logo: '/images/一般.jpg'
+    // 更新為對應的首頁圖
+    logo: '/images/一般.jpg' 
   },
   tennis: {
     id: 'tennis',
@@ -239,7 +241,8 @@ export const THEMES = {
     particleType: 'tennis',
     title: '網球主題活動',
     milestoneText: '網球好禮',
-    logo: '/images/一般.jpg'
+    // 更新為對應的首頁圖
+    logo: '/images/一般.jpg' 
   },
   baseball: {
     id: 'baseball',
@@ -261,7 +264,8 @@ export const THEMES = {
     particleType: 'baseball',
     title: '棒球主題活動',
     milestoneText: '全壘打好禮',
-    logo: '/images/一般.jpg'
+    // 更新為對應的首頁圖
+    logo: '/images/一般.jpg' 
   },
   basketball: {
     id: 'basketball',
@@ -283,6 +287,183 @@ export const THEMES = {
     particleType: 'basketball',
     title: '籃球主題活動',
     milestoneText: '灌籃好禮',
-    logo: '/images/一般.jpg'
+    // 更新為對應的首頁圖
+    logo: '/images/一般.jpg' 
   }
 };
+
+// --- Particle System Logic ---
+// 將 particleType 映射到實際要在畫面上掉落的 Emoji 或元素
+const PARTICLE_MAP = {
+  snow: ['❄️', '❅', '❆'],
+  coin: ['🪙', '🧧', '💰'],
+  none: [],
+  ghost: ['👻', '🎃', '🦇'],
+  sakura: ['🌸', '💮'],
+  leaf: ['🍂', '🍁'],
+  star: ['⭐', '✨', '🏮'],
+  bubble: ['🫧', '💧'],
+  soccer: ['⚽'],        // 足球掉落物
+  tennis: ['🎾'],        // 網球掉落物
+  baseball: ['⚾'],      // 棒球掉落物
+  basketball: ['🏀']     // 籃球掉落物
+};
+
+// 動態生成掉落物的元件 (可整合進您的專案中)
+const ParticleEffect = ({ type }) => {
+  const particles = PARTICLE_MAP[type];
+  if (!particles || particles.length === 0) return null;
+
+  // 產生 30 個隨機位置的掉落物
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+      {[...Array(30)].map((_, i) => {
+        const randomParticle = particles[Math.floor(Math.random() * particles.length)];
+        const left = `${Math.random() * 100}%`;
+        const animationDuration = `${Math.random() * 3 + 4}s`; // 4s - 7s
+        const animationDelay = `-${Math.random() * 5}s`;      // 提早開始，避免一開始畫面空空的
+        const fontSize = `${Math.random() * 1 + 1}rem`;        // 1rem - 2rem 大小隨機
+
+        return (
+          <div
+            key={i}
+            className="absolute top-[-10%] animate-fall"
+            style={{
+              left,
+              animationDuration,
+              animationDelay,
+              fontSize,
+            }}
+          >
+            {randomParticle}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+export default function App() {
+  const [currentThemeId, setCurrentThemeId] = useState('basketball');
+  const theme = THEMES[currentThemeId];
+  const ThemeIcon = theme.icon;
+
+  return (
+    <div 
+      className={`min-h-screen relative transition-all duration-700 bg-gradient-to-br ${theme.colors.bgGradient} p-6 flex flex-col items-center justify-center font-sans`}
+    >
+      {/* 注入掉落動畫的 CSS Keyframes */}
+      <style>
+        {`
+          @keyframes fall {
+            0% { transform: translateY(0vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+          }
+          .animate-fall {
+            animation: fall linear infinite;
+          }
+        `}
+      </style>
+
+      {/* 背景掉落物特效 */}
+      <ParticleEffect type={theme.particleType} />
+
+      <div className="z-10 w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+        
+        {/* 左側：主題選擇器 */}
+        <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 shadow-xl col-span-1 h-fit">
+          <h2 className="text-xl font-bold mb-4 text-white drop-shadow-md">選擇預覽主題</h2>
+          <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+            {Object.values(THEMES).map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setCurrentThemeId(t.id)}
+                className={`text-left px-4 py-3 rounded-lg transition-all duration-300 font-medium ${
+                  currentThemeId === t.id 
+                    ? 'bg-white text-gray-900 shadow-lg scale-105' 
+                    : 'bg-black/20 text-white hover:bg-black/40'
+                }`}
+              >
+                {t.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 右側：主題風格與圖片預覽卡片 */}
+        <div className="col-span-1 md:col-span-2 flex flex-col items-center justify-center">
+          <div 
+            className="w-full max-w-md rounded-2xl overflow-hidden shadow-2xl transition-all duration-700 transform hover:scale-105 border-4"
+            style={{ 
+              backgroundColor: theme.colors.cardBg,
+              borderColor: theme.colors.cardBorder,
+            }}
+          >
+            {/* 模擬首頁圖片展示區塊 */}
+            <div 
+              className="h-48 w-full flex flex-col items-center justify-center relative overflow-hidden"
+              style={{ backgroundColor: theme.colors.primary }}
+            >
+              <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay"></div>
+              <ThemeIcon size={64} style={{ color: theme.colors.accent }} className="mb-2 drop-shadow-lg" />
+              <h1 className="text-3xl font-extrabold tracking-wider" style={{ color: theme.colors.buttonText }}>
+                {theme.title}
+              </h1>
+            </div>
+
+            <div className="p-8 flex flex-col gap-6">
+              <div 
+                className="p-4 rounded-xl border-2 border-dashed flex items-center justify-between"
+                style={{ borderColor: theme.colors.primary, backgroundColor: theme.colors.cardBg }}
+              >
+                <div className="flex items-center gap-3">
+                  <ImageIcon style={{ color: theme.colors.primary }} />
+                  <span className="font-semibold" style={{ color: theme.colors.textDark }}>
+                    設定的圖片路徑：
+                  </span>
+                </div>
+                <code className="px-2 py-1 rounded bg-black/5 font-mono text-sm" style={{ color: theme.colors.primary }}>
+                  {theme.logo}
+                </code>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span style={{ color: theme.colors.textDark }} className="font-bold">里程碑文字</span>
+                  <span 
+                    className="px-3 py-1 rounded-full text-sm font-bold"
+                    style={{ backgroundColor: theme.colors.secondary, color: '#fff' }}
+                  >
+                    {theme.milestoneText}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span style={{ color: theme.colors.textDark }} className="font-bold">掉落物類型</span>
+                  <span 
+                    className="px-3 py-1 rounded-full text-sm font-bold uppercase tracking-wider"
+                    style={{ backgroundColor: theme.colors.accent, color: theme.colors.textDark }}
+                  >
+                    {theme.particleType}
+                  </span>
+                </div>
+              </div>
+
+              <button 
+                className="w-full py-4 rounded-xl font-bold text-lg shadow-md transition-transform active:scale-95"
+                style={{ 
+                  backgroundColor: theme.colors.primary, 
+                  color: theme.colors.buttonText 
+                }}
+              >
+                進入活動
+              </button>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  );
+}
