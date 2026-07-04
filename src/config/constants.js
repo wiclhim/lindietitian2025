@@ -202,15 +202,15 @@ export const THEMES = {
     id: 'soccer',
     name: '⚽ 熱血足球',
     colors: {
-      primary: '#16A34A',
-      primaryHover: '#15803D',
-      secondary: '#1F2937',
+      primary: '#22C55E',
+      primaryHover: '#16A34A',
+      secondary: '#0F766E',
       accent: '#FACC15',
-      bgGradient: 'from-[#052e16] via-[#14532d] to-[#166534]',
-      textMain: '#F0FDF4',
+      bgGradient: 'from-[#F0FDF4] via-[#DCFCE7] to-[#BBF7D0]',
+      textMain: '#052e16',
       textDark: '#052e16',
       cardBg: '#FFFFFF',
-      cardBorder: '#16A34A',
+      cardBorder: '#22C55E',
       buttonText: '#FFFFFF',
       success: '#15803D'
     },
@@ -303,10 +303,10 @@ const PARTICLE_MAP = {
   leaf: ['🍂', '🍁'],
   star: ['⭐', '✨', '🏮'],
   bubble: ['🫧', '💧'],
-  soccer: ['⚽'],        // 足球掉落物
-  tennis: ['🎾'],        // 網球掉落物
-  baseball: ['⚾'],      // 棒球掉落物
-  basketball: ['🏀']     // 籃球掉落物
+  soccer: ['⚽', '🥅', '🏆'],        // 足球掉落物
+  tennis: ['🎾', '🏆', '⭐'],        // 網球掉落物
+  baseball: ['⚾', '🧢', '🏆'],      // 棒球掉落物
+  basketball: ['🏀', '🔥', '🏆']     // 籃球掉落物
 };
 
 // 動態生成掉落物的元件 (可整合進您的專案中)
