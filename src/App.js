@@ -1,4 +1,3 @@
-// src/App.js
 import AdminDashboard from "./features/admin/AdminDashboard";
 import GameCenter from "./features/games/GameCenter";
 import React, { useState, useEffect, useRef, useMemo } from "react";
@@ -23,6 +22,7 @@ import {
   deleteField,
 } from "firebase/firestore";
 import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "firebase/auth";
+
 import {
   Gift,
   Users,
@@ -79,8 +79,6 @@ import {
 
 import ParticleEffect from "./components/ui/ParticleEffect";
 import Header from "./components/ui/Header";
-
-// --- 引入設定 ---
 import { auth, db } from "./config/firebase";
 import { maskTicketId, isSameDay, getRandomPrize } from "./utils/helpers";
 import { THEMES, ADMIN_PIN, LINE_ID, MENU_URL } from "./config/constants";
@@ -103,7 +101,7 @@ export default function App() {
   const [configError, setConfigError] = useState(false);
   const [authError, setAuthError] = useState(null); 
   
-  // --- 修改：優先從 localStorage 讀取上次的主題，解決閃爍問題 ---
+  // 優先從 localStorage 讀取上次的主題，解決閃爍問題
   const [currentThemeId, setCurrentThemeId] = useState(() => {
     try {
       return localStorage.getItem("cached_theme_id") || 'christmas';
@@ -115,10 +113,9 @@ export default function App() {
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [eventType, setEventType] = useState('both'); 
   
-  // --- 新增：紀錄是否需要自動開啟回報視窗或遊戲 ---
+  // 紀錄是否需要自動開啟回報視窗或遊戲
   const [initialAction, setInitialAction] = useState(null);
-
-  // --- 遊戲設定狀態 ---
+  // 遊戲設定狀態
   const [gameSettings, setGameSettings] = useState({}); 
 
   const theme = THEMES[currentThemeId] || THEMES.christmas;
@@ -182,7 +179,6 @@ export default function App() {
     };
   }, []);
 
-  // --- 同時監聽全域設定與遊戲設定 ---
   useEffect(() => {
     let unsubGlobal = () => {};
     let unsubGames = () => {};
@@ -195,7 +191,6 @@ export default function App() {
                     const data = docSnap.data();
                     if (data.activeTheme) {
                         setCurrentThemeId(data.activeTheme);
-                        // --- 修改：當主題變更時，寫入 localStorage ---
                         localStorage.setItem("cached_theme_id", data.activeTheme);
                     }
                     if (data.eventType) setEventType(data.eventType);
@@ -377,7 +372,6 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both', hasActiveGa
                   <p>只要報手機號碼，消費金額</p>
                   <p className="text-lg font-bold my-1" style={{ color: theme.colors.primary }}>✨ 可跨日一直累積 ✨</p>
                   <p>每滿 300 元自動獲得一張摸彩券</p>
-                  {/* 新增：累積點數說明 */}
                   <div className="mt-2 pt-2 border-t border-dashed border-gray-300">
                     <p className="text-sm">💡 點擊登記消費 ➜ 輸入餐盒數量 ➜ 店長確認即完成！</p>
                   </div>
@@ -393,14 +387,12 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both', hasActiveGa
 
       <div className="w-full max-w-sm md:max-w-md space-y-4 z-10 relative pt-4">
         {hasActiveGames && (
-            // 修改：點擊每日挑戰時，設定 initialAction 為 'game'
             <button onClick={() => { setInitialAction('game'); setView("customer-login"); }} className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 text-lg md:text-xl transition-all active:scale-95 group animate-in slide-in-from-bottom-2 border-2 border-white/20">
                 <Gamepad2 className="w-7 h-7 animate-bounce" /> 
                 <span>每日挑戰 (贏免費好禮)</span>
             </button>
         )}
 
-        {/* 新增：直接登記消費按鈕 */}
         <button 
             onClick={() => { setInitialAction('report'); setView("customer-login"); }} 
             className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 text-lg md:text-xl transition-all active:scale-95 group hover:bg-blue-700 animate-in slide-in-from-bottom-2 border-2 border-white/20"
@@ -565,9 +557,6 @@ function CustomerLogin({ setView, setCurrentUserData, theme, isDemoMode }) {
   );
 }
 
-// --------------------------------------------------------
-// CustomerDashboard: 新增自我回報功能
-// --------------------------------------------------------
 function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 'both', hasActiveGames, initialAction, setInitialAction }) {
   const [data, setData] = useState(userData);
   const [myPrizes, setMyPrizes] = useState([]);
@@ -577,10 +566,8 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedMilestone, setSelectedMilestone] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
-
   const [showGameCenter, setShowGameCenter] = useState(false);
 
-  // --- 新增：自我回報相關狀態 ---
   const [showSelfCheckIn, setShowSelfCheckIn] = useState(false);
   const [reportAmount, setReportAmount] = useState("");
   const [reportBento, setReportBento] = useState("");
@@ -592,14 +579,13 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
   const showLoyalty = eventType === 'loyalty' || eventType === 'both';
   const isNone = eventType === 'none';
 
-  // --- 修改：監聽 initialAction，區分 'report' 和 'game' ---
   useEffect(() => {
     if (initialAction === 'report') {
         setShowSelfCheckIn(true);
-        if (setInitialAction) setInitialAction(null); // 開啟後重置
+        if (setInitialAction) setInitialAction(null); 
     } else if (initialAction === 'game') {
-        setShowGameCenter(true); // 自動開啟遊戲中心
-        if (setInitialAction) setInitialAction(null); // 開啟後重置
+        setShowGameCenter(true); 
+        if (setInitialAction) setInitialAction(null); 
     }
   }, [initialAction, setInitialAction]);
 
@@ -607,7 +593,6 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
     if (!userData?.id) return;
     
     if (isDemoMode) {
-        // ... demo mode logic ...
         const nextYear = new Date();
         nextYear.setMonth(nextYear.getMonth() + 6);
         setMyPrizes([
@@ -636,7 +621,6 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
       setMyPrizes(fetchedPrizes); 
     });
 
-    // --- 新增：監聽自己的待審核申請 ---
     const qRequests = query(
       collection(db, "pending_requests"), 
       where("customerId", "==", userData.id),
@@ -654,7 +638,6 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
   const nextTicketNeeds = 300 - ((data.totalSpent || 0) % 300);
   const openLine = () => window.open(`https://line.me/R/ti/p/${LINE_ID}`, "_blank");
 
-  // --- 新增：處理自我回報送出 ---
   const handleSelfReport = async (e) => {
     e.preventDefault();
     if (!reportAmount && !reportBento) return;
@@ -790,7 +773,6 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
                  <input type="date" value={reportDate} onChange={e => setReportDate(e.target.value)} className="w-full p-3 border rounded-xl text-lg bg-gray-50 text-black" />
                </div>
                
-               {/* 修改：根據活動類型顯示欄位 */}
                <div className="flex gap-3">
                  {showLottery && (
                     <div className="flex-1">
@@ -815,6 +797,7 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
         </div>
       )}
 
+      {}
       <div className="space-y-6">
         <div className="p-6 md:p-8 rounded-3xl shadow-2xl relative overflow-hidden border-2 min-h-[220px] flex flex-col justify-between transform transition hover:scale-[1.01]"
              style={{ background: `linear-gradient(to bottom right, ${theme.colors.primary}, ${theme.colors.textDark})`, borderColor: theme.colors.accent }}>
@@ -832,13 +815,13 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
             <LoyaltyCard points={data.points || 0} redeemedMilestones={data.redeemedMilestones || []} onRedeemClick={openRedeemModal} theme={theme} settings={loyaltySettings} />
         )}
 
+        {}
         {activePrizes.length > 0 && (
           <div className="bg-white p-6 rounded-2xl shadow-md border-l-8 animate-in slide-in-from-bottom-2" style={{ borderColor: theme.colors.accent }}>
             <h3 className="font-bold mb-4 flex items-center gap-2 text-lg border-b pb-2" style={{ color: theme.colors.textDark, borderColor: theme.colors.cardBorder }}><Gift className="w-6 h-6" style={{ color: theme.colors.primary }} /> 我的獎品匣</h3>
             <div className="space-y-3">
               {activePrizes.map((prize) => (
                 <div key={prize.id} className={`p-4 rounded-xl border-2 flex flex-col gap-3 transition-all ${prize.redeemed ? "bg-gray-50 border-gray-200 grayscale" : "bg-gray-50 shadow-sm"}`} style={{ borderColor: prize.redeemed ? '#E5E7EB' : theme.colors.accent }}>
-                  {/* ... Prize content same as before ... */}
                   <div className="flex justify-between items-start">
                     <div>
                         <p className={`font-bold text-lg ${prize.redeemed ? "text-gray-500" : ""}`} style={{ color: prize.redeemed ? undefined : theme.colors.textDark }}>{prize.name}</p>
@@ -875,6 +858,7 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
           </div>
         )}
 
+        {}
         {!isNone && showLottery && (
             <div className="bg-white p-6 rounded-2xl shadow-md border-l-8 flex flex-col gap-3" style={{ borderColor: theme.colors.secondary }}>
               <div className="flex justify-between items-center border-b border-dashed border-gray-200 pb-3"><span className="font-medium text-gray-600">總獲得券數</span><div className="flex items-center gap-2 text-2xl font-bold" style={{ color: theme.colors.secondary }}><Ticket className="w-6 h-6" /> {totalTickets} <span className="text-base font-normal text-gray-400">張</span></div></div>
@@ -908,9 +892,9 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
         )}
       </div>
 
+      {}
       <div className="space-y-6">
         
-        {/* --- 修改：新增「消費回報」按鈕 --- */}
         <div className="space-y-4">
             {hasActiveGames && (
                 <button onClick={() => setShowGameCenter(true)} className="w-full text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 animate-in slide-in-from-left-2 group">
@@ -934,7 +918,6 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
             </button>
         </div>
 
-        {/* 累積點數說明 */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border" style={{ borderColor: theme.colors.cardBorder }}>
           <h3 className="font-bold mb-4 flex items-center gap-2 text-lg" style={{ color: theme.colors.textDark }}><PlusCircle className="w-6 h-6" style={{ color: theme.colors.success }} /> 如何累積點數？</h3>
           <p className="text-gray-700 text-base leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100">
@@ -942,7 +925,6 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
           </p>
         </div>
 
-        {/* 待審核列表 (New) */}
         {pendingRequests.length > 0 && (
           <div className="bg-blue-50 p-6 rounded-2xl shadow-sm border border-blue-100 flex-1">
              <h3 className="font-bold mb-4 border-b border-blue-200 pb-2 text-lg text-blue-800 flex items-center gap-2">
@@ -965,7 +947,6 @@ function CustomerDashboard({ userData, goToMenu, theme, isDemoMode, eventType = 
           </div>
         )}
 
-        {/* 消費紀錄 */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border flex-1" style={{ borderColor: theme.colors.cardBorder }}>
           <h3 className="font-bold mb-4 border-b border-gray-100 pb-2 text-lg" style={{ color: theme.colors.textDark }}>最近已核准紀錄</h3>
           <div className="space-y-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
