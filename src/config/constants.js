@@ -216,7 +216,7 @@ export const THEMES = {
     },
     icon: Trophy,
     particleType: 'soccer',
-    title: '足球主題活動',
+    title: '世界盃開踢',
     milestoneText: '足球好禮',
     // 更新為對應的首頁圖
     logo: '/images/一般.jpg' 
@@ -239,7 +239,7 @@ export const THEMES = {
     },
     icon: Target,
     particleType: 'tennis',
-    title: '網球主題活動',
+    title: '四大滿貫',
     milestoneText: '網球好禮',
     // 更新為對應的首頁圖
     logo: '/images/一般.jpg' 
@@ -262,7 +262,7 @@ export const THEMES = {
     },
     icon: CircleDot,
     particleType: 'baseball',
-    title: '棒球主題活動',
+    title: '百萬象迷',
     milestoneText: '全壘打好禮',
     // 更新為對應的首頁圖
     logo: '/images/一般.jpg' 
@@ -285,7 +285,7 @@ export const THEMES = {
     },
     icon: Flame,
     particleType: 'basketball',
-    title: '籃球主題活動',
+    title: 'NBA殿堂',
     milestoneText: '灌籃好禮',
     // 更新為對應的首頁圖
     logo: '/images/一般.jpg' 
