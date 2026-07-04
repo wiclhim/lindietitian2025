@@ -195,7 +195,7 @@ export const THEMES = {
     particleType: 'bubble',
     title: '仲夏活動',
     milestoneText: '清涼好禮',
-    logo: '/images/端午.jpg'
+    logo: '/images/仲夏.jpg'
   },
   soccer: {
     id: 'soccer',
