@@ -219,7 +219,7 @@ export const THEMES = {
     title: '世界盃開踢',
     milestoneText: '足球好禮',
     // 更新為對應的首頁圖
-    logo: '/images/一般.jpg' 
+    logo: '/images/足球.png' 
   },
   tennis: {
     id: 'tennis',
