@@ -7,7 +7,11 @@ import {
   Flower2,
   Leaf,
   Moon,
-  Sun
+  Sun,
+  Trophy,
+  Target,
+  CircleDot,
+  Flame
 } from "lucide-react";
 
 // --- Global Constants ---
@@ -192,5 +196,93 @@ export const THEMES = {
     title: '仲夏活動',
     milestoneText: '清涼好禮',
     logo: '/images/端午.jpg'
+  },
+  soccer: {
+    id: 'soccer',
+    name: '⚽ 熱血足球',
+    colors: {
+      primary: '#16A34A',
+      primaryHover: '#15803D',
+      secondary: '#1F2937',
+      accent: '#FACC15',
+      bgGradient: 'from-[#052e16] via-[#14532d] to-[#166534]',
+      textMain: '#F0FDF4',
+      textDark: '#052e16',
+      cardBg: '#FFFFFF',
+      cardBorder: '#16A34A',
+      buttonText: '#FFFFFF',
+      success: '#15803D'
+    },
+    icon: Trophy,
+    particleType: 'soccer',
+    title: '足球主題活動',
+    milestoneText: '足球好禮',
+    logo: '/images/一般.jpg'
+  },
+  tennis: {
+    id: 'tennis',
+    name: '🎾 網球競技',
+    colors: {
+      primary: '#A3E635',
+      primaryHover: '#84CC16',
+      secondary: '#1D4ED8',
+      accent: '#FFFFFF',
+      bgGradient: 'from-[#1E3A8A] via-[#1D4ED8] to-[#3B82F6]',
+      textMain: '#F0F9FF',
+      textDark: '#1E3A8A',
+      cardBg: '#FFFFFF',
+      cardBorder: '#A3E635',
+      buttonText: '#1E3A8A',
+      success: '#65A30D'
+    },
+    icon: Target,
+    particleType: 'tennis',
+    title: '網球主題活動',
+    milestoneText: '網球好禮',
+    logo: '/images/一般.jpg'
+  },
+  baseball: {
+    id: 'baseball',
+    name: '⚾ 熱力棒球',
+    colors: {
+      primary: '#DC2626',
+      primaryHover: '#B91C1C',
+      secondary: '#1E3A8A',
+      accent: '#F5DEB3',
+      bgGradient: 'from-[#F5F5DC] via-[#E8DCC4] to-[#D2B48C]',
+      textMain: '#1E293B',
+      textDark: '#1E293B',
+      cardBg: '#FFFFFF',
+      cardBorder: '#DC2626',
+      buttonText: '#FFFFFF',
+      success: '#166534'
+    },
+    icon: CircleDot,
+    particleType: 'baseball',
+    title: '棒球主題活動',
+    milestoneText: '全壘打好禮',
+    logo: '/images/一般.jpg'
+  },
+  basketball: {
+    id: 'basketball',
+    name: '🏀 灌籃球場',
+    colors: {
+      primary: '#F97316',
+      primaryHover: '#EA580C',
+      secondary: '#1F2937',
+      accent: '#FDBA74',
+      bgGradient: 'from-[#1a1005] via-[#3a1f0a] to-[#7c2d12]',
+      textMain: '#FFF7ED',
+      textDark: '#431407',
+      cardBg: '#FFF7ED',
+      cardBorder: '#F97316',
+      buttonText: '#FFFFFF',
+      success: '#16A34A'
+    },
+    icon: Flame,
+    particleType: 'basketball',
+    title: '籃球主題活動',
+    milestoneText: '灌籃好禮',
+    logo: '/images/一般.jpg'
   }
 };
