@@ -94,7 +94,7 @@ const StoreSettings = ({ theme, isDemoMode, setCurrentThemeId, setEventType, eve
                     <Palette className="w-6 h-6" style={{ color: theme.colors.primary }} /> 商店風格設定
                 </h3>
                 <p className="text-gray-600 mb-6 bg-gray-50 p-3 rounded-lg">
-                    點擊下方按鈕即可切換全站風格（包含配色、圖示與特效）。
+                    點擊下方按鈕即可切換全站風格（包含配色、首頁圖片、圖示與特效）。元宵、中秋、端午與仲夏皆可獨立選擇。
                 </p>
                 
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">

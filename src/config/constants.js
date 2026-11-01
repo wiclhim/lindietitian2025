@@ -154,9 +154,10 @@ export const THEMES = {
     milestoneText: '豐收好禮',
     logo: '/images/秋楓.jpg'
   },
+  // 保留既有 moon ID，讓已儲存的元宵風格設定繼續有效。
   moon: {
     id: 'moon',
-    name: '🏮 元宵/中秋',
+    name: '🏮 元宵團圓',
     colors: {
       primary: '#1E3A8A', 
       primaryHover: '#172554',
@@ -172,13 +173,58 @@ export const THEMES = {
     },
     icon: Moon,
     particleType: 'star',
-    title: '佳節活動',
+    title: '元宵活動',
     milestoneText: '團圓好禮',
     logo: '/images/元宵.jpg'
   },
+  midautumn: {
+    id: 'midautumn',
+    name: '🌕 中秋賞月',
+    colors: {
+      primary: '#6D28D9',
+      primaryHover: '#5B21B6',
+      secondary: '#B45309',
+      accent: '#FCD34D',
+      bgGradient: 'from-[#1E1B4B] via-[#312E81] to-[#581C87]',
+      textMain: '#FEF3C7',
+      textDark: '#3B0764',
+      cardBg: '#FFFBEB',
+      cardBorder: '#FCD34D',
+      buttonText: '#FFFFFF',
+      success: '#0F766E'
+    },
+    icon: Moon,
+    particleType: 'star',
+    title: '中秋活動',
+    milestoneText: '中秋好禮',
+    logo: '/images/中秋.jpg'
+  },
+  dragonboat: {
+    id: 'dragonboat',
+    name: '🛶 端午飄香',
+    colors: {
+      primary: '#15803D',
+      primaryHover: '#166534',
+      secondary: '#0F766E',
+      accent: '#FDE68A',
+      bgGradient: 'from-[#F0FDF4] via-[#DCFCE7] to-[#BBF7D0]',
+      textMain: '#14532D',
+      textDark: '#14532D',
+      cardBg: '#FFFBEB',
+      cardBorder: '#86EFAC',
+      buttonText: '#FFFFFF',
+      success: '#047857'
+    },
+    icon: Leaf,
+    particleType: 'leaf',
+    title: '端午活動',
+    milestoneText: '端午好禮',
+    logo: '/images/端午.jpg'
+  },
+  // 保留既有 summer ID，仲夏風格維持使用自己的圖片。
   summer: {
     id: 'summer',
-    name: '🛶 端午仲夏',
+    name: '☀️ 清涼仲夏',
     colors: {
       primary: '#0D9488', 
       primaryHover: '#0F766E',
