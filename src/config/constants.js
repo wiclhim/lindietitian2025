@@ -19,6 +19,7 @@ import {
 export const ADMIN_PIN = "1225";
 export const LINE_ID = "@171kndrh";
 export const MENU_URL = "https://i.ibb.co/Rk0Ccjqn/image.jpg";
+export const ORDER_URL = "https://lindietitian.pages.dev/";
 
 // --- Theme System Configuration ---
 export const THEMES = {

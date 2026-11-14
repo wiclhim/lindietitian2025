@@ -37,6 +37,8 @@ import {
   User,
   MessageCircle,
   ArrowLeft,
+  ArrowRight,
+  ShoppingBag,
   Utensils,
   Star,
   Calendar,
@@ -81,7 +83,7 @@ import ParticleEffect from "./components/ui/ParticleEffect";
 import Header from "./components/ui/Header";
 import { auth, db } from "./config/firebase";
 import { maskTicketId, isSameDay, getRandomPrize } from "./utils/helpers";
-import { THEMES, ADMIN_PIN, LINE_ID, MENU_URL } from "./config/constants";
+import { THEMES, ADMIN_PIN, LINE_ID, MENU_URL, ORDER_URL } from "./config/constants";
 import EasterEggModal from "./components/ui/EasterEggModal";
 import RedeemModal from "./components/ui/RedeemModal";
 import WinnersList from "./components/display/WinnersList";
@@ -295,6 +297,23 @@ function LoadingView() {
     );
 }
 
+function OrderLink({ theme }) {
+  return (
+    <a href={ORDER_URL}
+       className="flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 shadow-lg transition hover:brightness-95 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current md:px-5"
+       style={{ backgroundColor: theme.colors.accent, color: theme.colors.textDark }}>
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/60">
+        <ShoppingBag aria-hidden="true" className="h-6 w-6" />
+      </span>
+      <span className="min-w-0 flex-1 text-left">
+        <span className="block text-lg font-extrabold md:text-xl">線上點餐・預訂</span>
+        <span className="block text-sm font-medium">先訂餐盒，到店取餐</span>
+      </span>
+      <ArrowRight aria-hidden="true" className="h-5 w-5 shrink-0" />
+    </a>
+  );
+}
+
 function MenuView({ goBack, theme }) {
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -305,6 +324,9 @@ function MenuView({ goBack, theme }) {
         <h2 className="text-2xl md:text-3xl font-bold mb-6 flex items-center gap-3 border-b-2 pb-4" style={{ color: theme.colors.textDark }}>
           <Utensils className="w-8 h-8" style={{ color: theme.colors.primary }} /> 木木營養食 美味菜單
         </h2>
+        <div className="mx-auto mb-6 max-w-md">
+          <OrderLink theme={theme} />
+        </div>
         <div className="flex justify-center bg-gray-50 rounded-2xl overflow-hidden min-h-[300px] md:min-h-[500px] items-center border border-dashed border-gray-300">
           <img src={MENU_URL} alt="店內菜單" className="max-w-full h-auto object-contain shadow-sm" onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/600x800?text=Menu+Image+Not+Found"; }} />
         </div>
@@ -359,7 +381,16 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both', hasActiveGa
             </div>
         )}
       </div>
-      
+
+      <div className="relative z-10 w-full max-w-md space-y-3">
+        <OrderLink theme={theme} />
+        <button onClick={goToMenu}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border-2 bg-white px-4 py-2.5 text-base font-bold transition hover:brightness-95 active:scale-[0.98]"
+                style={{ borderColor: theme.colors.accent, color: theme.colors.textDark }}>
+          <Utensils aria-hidden="true" className="h-5 w-5" /> 查看美味菜單
+        </button>
+      </div>
+
       {!isNone && showLottery && (
           <div className="w-full max-w-md mt-2 p-1 rounded-2xl shadow-2xl z-10 relative"
                style={{ background: `linear-gradient(to right, ${theme.colors.primary}, ${theme.colors.secondary})` }}>
@@ -401,10 +432,6 @@ function LandingPage({ setView, goToMenu, theme, eventType = 'both', hasActiveGa
             <span>登記消費 (集點)</span>
         </button>
 
-        <button onClick={goToMenu} className="w-full font-bold py-4 rounded-2xl shadow-lg active:shadow-none active:translate-y-1 flex items-center justify-center gap-3 text-lg md:text-xl transition-all"
-                style={{ backgroundColor: theme.colors.accent, color: theme.colors.textDark }}>
-          <Utensils className="w-6 h-6" /> 查看美味菜單
-        </button>
         <button onClick={() => setView("customer-login")} className="w-full bg-white border-2 font-bold py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 text-lg md:text-xl transition-all active:scale-95 group hover:brightness-95"
                 style={{ borderColor: theme.colors.primary, color: theme.colors.primary }}>
           <User className="w-6 h-6 group-hover:scale-110 transition-transform" /> 我是顧客 (查詢/登入)
